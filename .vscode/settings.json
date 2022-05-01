@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.mc": "json",
+        "*.in": "c",
+        "*.h": "c"
+    }
+}

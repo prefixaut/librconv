@@ -1,0 +1,13 @@
+#pragma once
+
+#ifndef _INC_RCONV
+#	define _INC_RCONV
+
+#	include "./common.h"
+#	include "./memo.h"
+#	include "./stepmania.h"
+
+#   define RCONV_VERSION_MAJOR @rconv_VERSION_MAJOR@
+#   define RCONV_VERSION_MINOR @rconv_VERSION_MINOR@
+
+#endif

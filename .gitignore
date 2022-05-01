@@ -1,0 +1,12 @@
+# IDE Files
+/.vs
+
+# Output & Build files
+/build
+/out
+
+# CMake files
+Makefile
+
+# Libraries
+/include

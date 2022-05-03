@@ -1,6 +1,7 @@
 #include "./common.h"
 
-bool rconv_parse_bool(char* str)
+bool
+rconv_parse_bool(char* str)
 {
 	if (str == NULL) {
 		return false;
@@ -10,7 +11,8 @@ bool rconv_parse_bool(char* str)
 	return strcmp(str, "y") == 0 || strcmp(str, "yes") == 0 || strcmp(str, "true") == 0 || strcmp(str, "1") || strcmp(str, "on");
 }
 
-void rconv_list(RconvList* list, int initial_size)
+void
+rconv_list(RconvList* list, int initial_size)
 {
 	if (initial_size < 1) {
 		initial_size = 1;
@@ -20,7 +22,8 @@ void rconv_list(RconvList* list, int initial_size)
 	list->size = initial_size;
 }
 
-void rconv_list_add(RconvList* list, int element)
+void
+rconv_list_add(RconvList* list, int element)
 {
 	if (list->size == 0 || list->used == list->size) {
 		int old_size = min(list->size, 3);
@@ -30,7 +33,8 @@ void rconv_list_add(RconvList* list, int element)
 	list->array[list->used++] = element;
 }
 
-void rconv_list_free(RconvList* list)
+void
+rconv_list_free(RconvList* list)
 {
 	free(list->array);
 	list->array = NULL;
@@ -38,7 +42,8 @@ void rconv_list_free(RconvList* list)
 	list->used = 0;
 }
 
-int* rconv_list_to_array(RconvList* list, int* size)
+int*
+rconv_list_to_array(RconvList* list, int* size)
 {
 	if (list->size == 0) {
 		*size = 0;

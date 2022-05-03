@@ -6,9 +6,10 @@
 /*
  * Libraries
  */
-#	include <mpdecimal.h.in>
 #	include <stdbool.h>
+#	include <stdlib.h>
 #	include <string.h>
+#	include <mpdecimal.h.in>
 #	include <utf8.h>
 
 /*
@@ -247,8 +248,10 @@ typedef struct {
 /*
  * Functions
  */
-RconvStepmaniaChartFile* rconv_stepmania_parse(char* data);
+RconvStepmaniaChartFile*
+rconv_stepmania_parse(char* data);
 
-RconvFormattingParameters rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);
+RconvFormattingParameters
+rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);
 
 #endif

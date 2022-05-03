@@ -6,13 +6,13 @@
 #	include <stdbool.h>
 #	include <string.h>
 
-typedef struct RconvMemoSnap {
+typedef struct {
 	int length;
 	int part_index;
 	int row;
 } RconvMemoSnap;
 
-typedef struct RconvMemoNote {
+typedef struct {
 	int position;
 	int time;
 	int part;
@@ -23,7 +23,7 @@ typedef struct RconvMemoNote {
 	int release_section;
 } RconvMemoNote;
 
-typedef struct RconvMemoSection {
+typedef struct {
 	int index;
 	float bpm;
 	int part_count;
@@ -35,7 +35,7 @@ typedef struct RconvMemoSection {
 	RconvMemoNote* notes;
 } RconvMemoSection;
 
-typedef struct RconvMemoChart {
+typedef struct {
 	char* song_title;
 	char* artist;
 	char* difficulty;
@@ -48,7 +48,7 @@ typedef struct RconvMemoChart {
 
 const char* _RCONV_TOKEN_LIST = "口-||-^v<>①②③④⑤⑥⑦⑨⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
 
-typedef enum RconvMemoToken {
+typedef enum {
 	EMPTY_NOTE = 0,
 	EMPTY_TIME = 1,
 	SEPARATOR = 2,
@@ -61,8 +61,10 @@ typedef enum RconvMemoToken {
 	POSITIONS = 9,
 } RconvMemoToken;
 
-RconvMemoChart rconv_memo_parse(char* data[]);
+RconvMemoChart
+rconv_memo_parse(char* data[]);
 
-char* rconv_memo_parse_difficulty(char* data[]);
+char*
+rconv_memo_parse_difficulty(char* data[]);
 
 #endif

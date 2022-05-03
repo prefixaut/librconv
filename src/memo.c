@@ -2,13 +2,13 @@
 
 #include <stdlib.h>;
 
-
-typedef struct RconvMemoTokenElement {
+typedef struct {
 	int len;
 	RconvMemoToken* tokens;
 } RconvMemoTokenElement;
 
-int _rconv_memo_hold_offset(int position)
+int
+_rconv_memo_hold_offset(int position)
 {
 	switch (position) {
 	case HOLD_UP: return -4;
@@ -19,10 +19,14 @@ int _rconv_memo_hold_offset(int position)
 	}
 }
 
-RconvMemoTokenElement _rconv_memo_parse_tokens(char* data[], int from, int to)
+RconvMemoTokenElement
+_rconv_memo_parse_tokens(char* data[], int from, int to)
 {
 	RconvMemoTokenElement* elem = malloc(1 * sizeof(RconvMemoTokenElement));
 	return elem;
 }
 
-int _rconv_memo_hold_offset(int position) {}
+int
+_rconv_memo_hold_offset(int position)
+{
+}

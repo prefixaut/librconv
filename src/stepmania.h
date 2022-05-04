@@ -16,6 +16,7 @@
  * Own modules
  */
 #	include "./common.h"
+#	include "./list.h"
 
 /*
  * Definitions

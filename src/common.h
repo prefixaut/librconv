@@ -67,16 +67,4 @@ rconv_default_chart_format(RconvFileType type);
 bool
 rconv_parse_bool(char* str);
 
-void
-rconv_list(RconvList* list, int initial_size);
-
-void
-rconv_list_add(RconvList* list, int element);
-
-void
-rconv_list_free(RconvList* list);
-
-int*
-rconv_list_to_array(RconvList* list, int* size);
-
 #endif

@@ -117,8 +117,7 @@ rconv_stepmania_parse_partial(char* data, int* index, char* content, int* offset
 void
 rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBackgroundChange* changes)
 {
-	RconvList* list;
-	rconv_list(list, 5);
+	RconvList* list = rconv_list();
 
 	RconvStepmaniaBackgroundChange* change = (RconvStepmaniaBackgroundChange*) malloc(sizeof(RconvStepmaniaBackgroundChange));
 
@@ -185,8 +184,7 @@ rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBac
 void
 rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* stops)
 {
-	RconvList* list;
-	rconv_list(list);
+	RconvList* list = rconv_list();
 
 	RconvStepmaniaStop* stop = (RconvStepmaniaStop*) malloc(sizeof(RconvStepmaniaStop));
 
@@ -232,8 +230,7 @@ rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* stops)
 void
 rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* bpms)
 {
-	RconvList* list;
-	rconv_list(list);
+	RconvList* list = rconv_list();
 
 	RconvStepmaniaBpmChange* change = (RconvStepmaniaBpmChange*) malloc(sizeof(RconvStepmaniaStop));
 
@@ -279,8 +276,7 @@ rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* bpms)
 void
 rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSignature* signatures)
 {
-	RconvList* list;
-	rconv_list(list);
+	RconvList* list = rconv_list();
 
 	RconvStepmaniaTimeSignature* sig = (RconvStepmaniaTimeSignature*) malloc(sizeof(RconvStepmaniaStop));
 
@@ -407,8 +403,7 @@ rconv_stepmania_parse(char* data)
 		} else if (utf8cmp(tag, "fgchanges") == 0) {
 			rconv_stepmania_parse_background_changes(content, chart->foreground_changes_len, chart->foreground_changes);
 		} else if (utf8cmp(tag, "keysounds") == 0) {
-			RconvList* list;
-			rconv_list(list, 5);
+			RconvList* list = rconv_list();
 
 			int offset = 0;
 			int size = strlen(content);

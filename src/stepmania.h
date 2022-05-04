@@ -123,7 +123,7 @@ typedef struct {
 
 typedef struct {
 	mpd_t* time;
-	mpd_t* lengt;
+	mpd_t* length;
 	int mods_len;
 	RconvStepmaniaModifier* mods;
 } RconvStepmaniaTimedAttack;

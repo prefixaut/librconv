@@ -115,11 +115,16 @@ rconv_stepmania_parse_partial(char* data, int* index, char* content, int* offset
 }
 
 void
-rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBackgroundChange* changes)
+rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBackgroundChange* items)
 {
 	RconvList* list = rconv_list();
+	RconvStepmaniaBackgroundChange* elem = (RconvStepmaniaBackgroundChange*) malloc(sizeof(RconvStepmaniaBackgroundChange));
 
-	RconvStepmaniaBackgroundChange* change = (RconvStepmaniaBackgroundChange*) malloc(sizeof(RconvStepmaniaBackgroundChange));
+	int state = 0;
+	int idx = 0;
+	int start = 0;
+	int offset = 0;
+	char* content = NULL;
 
 	while (true) {
 		rconv_stepmania_parse_partial(data, idx, content, offset, state);
@@ -129,8 +134,8 @@ rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBac
 		}
 
 		if (state == 2) {
-			rconv_list_add(list, change);
-			change = (RconvStepmaniaBackgroundChange*) malloc(sizeof(RconvStepmaniaBackgroundChange));
+			rconv_list_add(list, elem);
+			elem = (RconvStepmaniaBackgroundChange*) malloc(sizeof(RconvStepmaniaBackgroundChange));
 			state = 0;
 			idx = 0;
 			continue;
@@ -139,28 +144,28 @@ rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBac
 		bool free_content = false;
 		if (idx == 0) {
 			has_data = true;
-			mpd_set_string(change->beat, content, NULL);
+			mpd_set_string(elem->beat, content, NULL);
 			free_content = true;
 		} else if (idx == 1) {
-			change->path = content;
+			elem->path = content;
 		} else if (idx == 2) {
-			mpd_set_string(change->update_rate, content, NULL);
+			mpd_set_string(elem->update_rate, content, NULL);
 			free_content = true;
 		} else if (idx == 3) {
-			change->crossfade = rconv_parse_bool(content);
+			elem->crossfade = rconv_parse_bool(content);
 			free_content = true;
 		} else if (idx == 4) {
-			change->stretch_rewind = rconv_parse_bool(content);
+			elem->stretch_rewind = rconv_parse_bool(content);
 			free_content = true;
 		} else if (idx == 5) {
-			change->stretch_no_loop = rconv_parse_bool(content);
+			elem->stretch_no_loop = rconv_parse_bool(content);
 			free_content = true;
 		} else if (idx == 6) {
-			change->effect = content;
+			elem->effect = content;
 		} else if (idx == 7) {
-			change->file2 = content;
+			elem->file2 = content;
 		} else if (idx == 8) {
-			change->transition = content;
+			elem->transition = content;
 		} else if (idx == 9) {
 			// TODO: parse color
 		} else if (idx == 10) {
@@ -174,19 +179,18 @@ rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBac
 		idx++;
 	}
 
-	*changes = (RconvStepmaniaBackgroundChange*) rconv_list_to_array(list, len);
-	if (changes == -1) {
-		*changes = NULL;
+	*items = (RconvStepmaniaBackgroundChange*) rconv_list_to_array(list, len);
+	if (items == -1) {
+		*items = NULL;
 	}
 	rconv_list_free(list);
 }
 
 void
-rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* stops)
+rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* items)
 {
 	RconvList* list = rconv_list();
-
-	RconvStepmaniaStop* stop = (RconvStepmaniaStop*) malloc(sizeof(RconvStepmaniaStop));
+	RconvStepmaniaStop* elem = (RconvStepmaniaStop*) malloc(sizeof(RconvStepmaniaStop));
 
 	int state = 0;
 	int idx = 0;
@@ -202,17 +206,17 @@ rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* stops)
 		}
 
 		if (state == 2) {
-			rconv_list_add(list, stop);
-			stop = (RconvStepmaniaStop*) malloc(sizeof(RconvStepmaniaStop));
+			rconv_list_add(list, elem);
+			elem = (RconvStepmaniaStop*) malloc(sizeof(RconvStepmaniaStop));
 			state = 0;
 			idx = 0;
 			continue;
 		}
 
 		if (idx == 0) {
-			mpd_set_string(stop->beat, content, NULL);
+			mpd_set_string(elem->beat, content, NULL);
 		} else if (idx == 1) {
-			mpd_set_string(stop->duration, content, NULL);
+			mpd_set_string(elem->duration, content, NULL);
 		}
 
 		free(content);
@@ -220,19 +224,18 @@ rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* stops)
 		idx++;
 	}
 
-	*stops = (RconvStepmaniaStop*) rconv_list_to_array(list, len);
-	if (stops == -1) {
-		*stops = NULL;
+	*items = (RconvStepmaniaStop*) rconv_list_to_array(list, len);
+	if (items == -1) {
+		*items = NULL;
 	}
 	rconv_list_free(list);
 }
 
 void
-rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* bpms)
+rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* items)
 {
 	RconvList* list = rconv_list();
-
-	RconvStepmaniaBpmChange* change = (RconvStepmaniaBpmChange*) malloc(sizeof(RconvStepmaniaStop));
+	RconvStepmaniaBpmChange* elem = (RconvStepmaniaBpmChange*) malloc(sizeof(RconvStepmaniaStop));
 
 	int state = 0;
 	int idx = 0;
@@ -248,17 +251,17 @@ rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* bpms)
 		}
 
 		if (state == 2) {
-			rconv_list_add(list, change);
-			change = (RconvStepmaniaBpmChange*) malloc(sizeof(RconvStepmaniaBpmChange));
+			rconv_list_add(list, elem);
+			elem = (RconvStepmaniaBpmChange*) malloc(sizeof(RconvStepmaniaBpmChange));
 			state = 0;
 			idx = 0;
 			continue;
 		}
 
 		if (idx == 0) {
-			mpd_set_string(change->beat, content, NULL);
+			mpd_set_string(elem->beat, content, NULL);
 		} else if (idx == 1) {
-			mpd_set_string(change->bpm, content, NULL);
+			mpd_set_string(elem->bpm, content, NULL);
 		}
 
 		free(content);
@@ -266,19 +269,18 @@ rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* bpms)
 		idx++;
 	}
 
-	*bpms = (RconvStepmaniaBpmChange*) rconv_list_to_array(list, len);
-	if (bpms == -1) {
-		*bpms = NULL;
+	*items = (RconvStepmaniaBpmChange*) rconv_list_to_array(list, len);
+	if (items == -1) {
+		*items = NULL;
 	}
 	rconv_list_free(list);
 }
 
 void
-rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSignature* signatures)
+rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSignature* items)
 {
 	RconvList* list = rconv_list();
-
-	RconvStepmaniaTimeSignature* sig = (RconvStepmaniaTimeSignature*) malloc(sizeof(RconvStepmaniaStop));
+	RconvStepmaniaTimeSignature* elem = (RconvStepmaniaTimeSignature*) malloc(sizeof(RconvStepmaniaStop));
 
 	int state = 0;
 	int idx = 0;
@@ -294,19 +296,19 @@ rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSi
 		}
 
 		if (state == 2) {
-			rconv_list_add(list, sig);
-			sig = (RconvStepmaniaTimeSignature*) malloc(sizeof(RconvStepmaniaTimeSignature));
+			rconv_list_add(list, elem);
+			elem = (RconvStepmaniaTimeSignature*) malloc(sizeof(RconvStepmaniaTimeSignature));
 			state = 0;
 			idx = 0;
 			continue;
 		}
 
 		if (idx == 0) {
-			mpd_set_string(sig->beat, content, NULL);
+			mpd_set_string(elem->beat, content, NULL);
 		} else if (idx == 1) {
-			sig->numerator = atoi(content);
+			elem->numerator = atoi(content);
 		} else if (idx == 2) {
-			sig->denominator = atoi(content);
+			elem->denominator = atoi(content);
 		}
 
 		free(content);
@@ -314,11 +316,67 @@ rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSi
 		idx++;
 	}
 
-	*signatures = (RconvStepmaniaTimeSignature*) rconv_list_to_array(list, len);
+	*items = (RconvStepmaniaTimeSignature*) rconv_list_to_array(list, len);
+	if (items == -1) {
+		*items = NULL;
+	}
+	rconv_list_free(list);
+}
+
+
+void
+rconv_stepmania_parse_modifiers(char* data, int* len, RconvStepmaniaModifier* items)
+{
+
+}
+
+void
+rconv_stepmania_parse_timed_attacks(char* data, int* len, RconvStepmaniaTimedAttack* items)
+{
+	/*
+	RconvList* list = rconv_list();
+	RconvStepmaniaTimedAttack* elem = (RconvStepmaniaTimedAttack*) malloc(sizeof(RconvStepmaniaBackgroundChange));
+
+	int state = 0;
+	int idx = 0;
+	int start = 0;
+	int offset = 0;
+	char* content = NULL;
+
+	while (true) {
+		rconv_stepmania_parse_partial(data, idx, content, offset, state);
+
+		if (content == NULL) {
+			break;
+		}
+
+		if (state == 2) {
+			rconv_list_add(list, elem);
+			elem = (RconvStepmaniaTimedAttack*) malloc(sizeof(RconvStepmaniaTimedAttack));
+			state = 0;
+			idx = 0;
+			continue;
+		}
+
+		if (idx == 0) {
+			mpd_set_string(elem->time, content, NULL);
+		} else if (idx == 1) {
+			mpd_set_string(elem->length, content, NULL);
+		} else if (idx == 2) {
+			elem->denominator = atoi(content);
+		}
+
+		free(content);
+
+		idx++;
+	}
+
+	*items = (RconvStepmaniaTimedAttack*) rconv_list_to_array(list, len);
 	if (signatures == -1) {
 		*signatures = NULL;
 	}
 	rconv_list_free(list);
+	*/
 }
 
 RconvStepmaniaChartFile*
@@ -450,6 +508,9 @@ rconv_stepmania_parse(char* data)
 		} else if (utf8cmp(tag, "bpms") == 0) {
 			rconv_stepmania_parse_bpms(content, chart->bpms_len, chart->bpms);
 		} else if (utf8cmp(tag, "timesignatures") == 0) {
+			rconv_stepmania_parse_time_signatures(content, chart->time_signatures_len, chart->time_signatures);
+		} else if (utf8cmp(tag, "attacks") == 0) {
+			rconv_stepmania_parse_timed_attacks(content, chart->attacks_len, chart->attacks);
 		}
 
 		free(tag);

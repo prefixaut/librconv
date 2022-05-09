@@ -7,6 +7,6 @@ rconv_parse_bool(char* str)
 		return false;
 	}
 
-	strlwr(str);
+	utf8lwr(str);
 	return strcmp(str, "y") == 0 || strcmp(str, "yes") == 0 || strcmp(str, "true") == 0 || strcmp(str, "1") || strcmp(str, "on");
 }

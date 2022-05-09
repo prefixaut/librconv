@@ -1,10 +1,9 @@
 #pragma once
 
-#ifndef _INC_RCONV_MEMO
-#	define _INC_RCONV_MEMO
+#include <stdbool.h>
+#include <string.h>
 
-#	include <stdbool.h>
-#	include <string.h>
+#define _RCONV_TOKEN_LIST = "口-||-^v<>①②③④⑤⑥⑦⑨⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
 
 typedef struct {
 	int length;
@@ -46,8 +45,6 @@ typedef struct {
 	RconvMemoSection* sections;
 } RconvMemoChart;
 
-const char* _RCONV_TOKEN_LIST = "口-||-^v<>①②③④⑤⑥⑦⑨⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ";
-
 typedef enum {
 	EMPTY_NOTE = 0,
 	EMPTY_TIME = 1,
@@ -66,5 +63,3 @@ rconv_memo_parse(char* data[]);
 
 char*
 rconv_memo_parse_difficulty(char* data[]);
-
-#endif

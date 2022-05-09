@@ -1,28 +1,22 @@
 #pragma once
 
-#ifndef _INC_RCONV_COMMON
-#	define _INC_RCONV_COMMON
-
-#	include <limits.h>
-#	include <stdbool.h>
-#	include <string.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <string.h>
+#include <utf8.h>
 
 /*
  * Definitions
  */
-#	define RCONV_ONE_MINUTE 60000
-
-/*
- * Constants
- */
-const char* RCONV_PLACEHOLDER_TITLE = "%title%";
-const char* RCONV_PLACEHOLDER_ARTIST = "%artist";
-const char* RCONV_PLACEHOLDER_DIFFICULTY = "%difficulty%";
-const char* RCONV_PLACEHOLDER_LEVEL = "%level%";
-const char* RCONV_PLACEHOLDER_MODE = "%mode%";
-const char* RCONV_DEFAULT_FOLDER_FORMAT = "%title% (%artist%)";
-const char* RCONV_DEFAULT_CHART_FORMAT = "%artist% - %title%_%difficulty%_%level%_%mode%";
-const char* RCONV_DEFAULT_NON_DIFFICULTY_CHART_FORMAT = "%artist% - %title%";
+#define RCONV_ONE_MINUTE 60000
+#define RCONV_PLACEHOLDER_TITLE "%title%";
+#define RCONV_PLACEHOLDER_ARTIST "%artist";
+#define RCONV_PLACEHOLDER_DIFFICULTY "%difficulty%";
+#define RCONV_PLACEHOLDER_LEVEL "%level%";
+#define RCONV_PLACEHOLDER_MODE "%mode%";
+#define RCONV_DEFAULT_FOLDER_FORMAT "%title% (%artist%)";
+#define RCONV_DEFAULT_CHART_FORMAT "%artist% - %title%_%difficulty%_%level%_%mode%";
+#define RCONV_DEFAULT_NON_DIFFICULTY_CHART_FORMAT "%artist% - %title%";
 
 /*
  * Types
@@ -46,12 +40,6 @@ typedef struct {
 	char* extension;
 } RconvFormattingParameters;
 
-typedef struct {
-	int* array;
-	size_t used;
-	size_t size;
-} RconvList;
-
 /*
  * Functions
  */
@@ -66,5 +54,3 @@ rconv_default_chart_format(RconvFileType type);
 
 bool
 rconv_parse_bool(char* str);
-
-#endif

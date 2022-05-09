@@ -6,7 +6,8 @@ cmake_minimum_required (VERSION 3.8)
 project ("rconv" VERSION 0.1)
 
 # Add source to this project's executable.
-add_executable (rconv "src/rconv.c" "src/rconv.h")
+file(GLOB SRC_FILES "src/*.c" "src/**/*.c")
+add_executable(rconv ${SRC_FILES})
 
 # Configure the files
 configure_file("src/rconv.h.in" "src/rconv.h")
@@ -15,6 +16,24 @@ configure_file("src/rconv.h.in" "src/rconv.h")
 target_include_directories(rconv PUBLIC "${PROJECT_BINARY_DIR}")
 
 # Libraries
-target_link_libraries(rconv PUBLIC include)
+target_include_directories(rconv PUBLIC
+  "src"
+  "lib/libmpdec"
+  "lib/utf8"
+)
+
+if(__STD_LIB_EXT1__ EQUAL 1)
+  target_compile_definitions(rconv PUBLIC __STDC_WANT_LIB_EXT1__=1)
+endif()
+
+add_compile_options(
+  -Wall
+  -Wextra
+  -Wconversion
+  -Wsign-conversion
+  $<$<CONFIG:DEBUG>:-g3>
+  $<$<CONFIG:DEBUG>:-Og>
+  $<$<CONFIG:RELEASE>:-O3>
+)
 
 # TODO: Add tests and install targets if needed.

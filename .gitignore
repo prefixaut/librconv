@@ -9,4 +9,11 @@
 Makefile
 
 # Libraries
-/include
+/lib
+!/lib/**/.gitkeep
+
+# Temporary and Testing files
+/resources
+
+# Logs
+*.log

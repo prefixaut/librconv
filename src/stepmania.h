@@ -1,27 +1,25 @@
 #pragma once
 
-#ifndef _INC_RCONV_STEPMANIA
-#	define _INC_RCONV_STEPMANIA
-
 /*
  * Libraries
  */
-#	include <stdbool.h>
-#	include <stdlib.h>
-#	include <string.h>
-#	include <mpdecimal.h.in>
-#	include <utf8.h>
+#include <mpdecimal.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <utf8.h>
 
 /*
  * Own modules
  */
-#	include "./common.h"
-#	include "./list.h"
+#include "common.h"
+#include "floats.h"
+#include "list.h"
 
 /*
  * Definitions
  */
-#	define RCONV_STEPMANIA_SPECIAL_NOTE_START 'D'
+#define RCONV_STEPMANIA_SPECIAL_NOTE_START 'D'
 
 /*
  * Types
@@ -254,5 +252,3 @@ rconv_stepmania_parse(char* data);
 
 RconvFormattingParameters
 rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);
-
-#endif

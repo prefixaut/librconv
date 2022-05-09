@@ -1,17 +1,14 @@
 #pragma once
 
-#ifndef _INC_RCONV_PIPELINE
-#	define _INC_RCONV_PIPELINE
-
 /*
  * Libraries
  */
-#	include <stdbool.h>
+#include <stdbool.h>
 
 /*
  * Own modules
  */
-#	include "./common.h"
+#include "./common.h"
 
 /*
  * Types
@@ -50,5 +47,3 @@ rconv_format_folder_name(RconvConvertOptions options, RconvFormattingParameters 
 
 char*
 rconv_format_file_name(RconvConvertOptions options, RconvFormattingParameters params);
-
-#endif

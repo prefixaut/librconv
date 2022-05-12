@@ -1,0 +1,6 @@
+[submodule "lib/utf8"]
+	path = lib/utf8
+	url = git@github.com:sheredom/utf8.h.git
+[submodule "lib/mpdecimal"]
+	path = lib/mpdecimal
+	url = git@github.com:jmsck55/mpdecimal.git

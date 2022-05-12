@@ -8,10 +8,6 @@
 # CMake files
 Makefile
 
-# Libraries
-/lib
-!/lib/**/.gitkeep
-
 # Temporary and Testing files
 /resources
 

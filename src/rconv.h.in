@@ -8,9 +8,5 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-#define RCONV_VERSION_MAJOR @rconv_VERSION_MAJOR @
-#define RCONV_VERSION_MINOR @rconv_VERSION_MINOR @
-
-char*
-rconv_file_extension(char* type);
+#define RCONV_VERSION_MAJOR @rconv_VERSION_MAJOR@
+#define RCONV_VERSION_MINOR @rconv_VERSION_MINOR@

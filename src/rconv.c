@@ -1,15 +1,5 @@
 #include "./rconv.h.in"
 
-char*
-rconv_file_extension(char* type)
-{
-	if (strcmp(type, "s")) {
-		return ".s";
-	} else {
-		return NULL;
-	}
-}
-
 int
 main()
 {

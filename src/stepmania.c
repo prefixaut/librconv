@@ -1,5 +1,24 @@
 #include "./stepmania.h"
 
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaBpmChange)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaStop)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaDelay)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaTimeSignature)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaInstrumentTrack)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaTickCount)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaBackgroundChange)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaModifier)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaAttack)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaTimedAttack)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaComboChange)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaSpeedChange)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaScrollSpeedChange)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaFakeSection)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaLabel)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaNote)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaBeat)
+RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaNoteData)
+
 RconvFormattingParameters
 rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart)
 {
@@ -73,23 +92,13 @@ rconv_stepmania_is_yes(char* content)
 }
 
 void
-rconv_stepmania_clear_list(RconvList* list, int* len, int** items)
-{
-	*items = rconv_list_to_array(list, len);
-	if (*items == NULL) {
-		*items = NULL;
-	}
-	rconv_list_free(list);
-}
-
-void
-rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offset, int* state, RconvList* list, int size, int** element)
+rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offset, int* state, RconvList* list, int size, void** element)
 {
 	if (element == NULL) {
-		*element = (int*) malloc(size);
+		*element = (void*) malloc(size);
 	}
 
-	int data_len = strlen(data);
+	size_t data_len = strlen(data);
 	int start = -1;
 
 	while (*offset < data_len) {
@@ -112,16 +121,18 @@ rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offse
 			continue;
 		}
 
-		int len = offset - start;
+		// Length of the string
+		int len = *offset - start;
 		*content = (char*) malloc((len + 1) * sizeof(char));
-		strncpy_s(content, len + 1, data + start, len);
+		strncpy_s(*content, len + 1, data + start, len);
 		*offset++;
 	}
 
 	if (start > -1) {
-		int len = offset - start;
+		// Length of the string
+		int len = *offset - start;
 		*content = malloc((len + 1) * sizeof(char));
-		strncpy_s(content, len + 1, data + start, len);
+		strncpy_s(*content, len + 1, data + start, len);
 	} else {
 		*content = NULL;
 	}
@@ -132,8 +143,8 @@ rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offse
 	*index = 0;
 }
 
-void
-rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBackgroundChange* items)
+RconvStepmaniaBackgroundChange**
+rconv_stepmania_parse_background_changes(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -187,11 +198,54 @@ rconv_stepmania_parse_background_changes(char* data, int* len, RconvStepmaniaBac
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaBackgroundChange)
 }
 
-void
-rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* items)
+char**
+rconv_stepmania_parse_string_list(char* data, int* len)
+{
+	RconvList* list = rconv_list();
+
+	int offset = 0;
+	size_t size = strlen(data);
+	int start = 0;
+	int has_content = false;
+
+	while (offset < size) {
+		if (*(data + offset) == ',') {
+			if (!has_content) {
+				continue;
+			}
+
+			int str_len = offset - start;
+			char* elem = malloc((str_len + 1) * sizeof(char));
+			strncpy_s(elem, str_len + 1, data + start, str_len);
+			rconv_list_add(list, elem);
+			start = offset + 1;
+			offset++;
+			has_content = false;
+			continue;
+		}
+
+		if (!rconv_stepmania_is_whitespace(data[offset]) && !has_content) {
+			has_content = true;
+			start = offset;
+		}
+		offset++;
+	}
+
+	if (has_content) {
+		int str_len = offset - start;
+		char* elem = malloc((str_len + 1) * sizeof(char));
+		strncpy_s(elem, str_len + 1, data + start, str_len);
+		rconv_list_add(list, elem);
+	}
+
+	RCONV_STEPMANIA_CLEAR_LIST(char)
+}
+
+RconvStepmaniaStop**
+rconv_stepmania_parse_stops(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -220,11 +274,11 @@ rconv_stepmania_parse_stops(char* data, int* len, RconvStepmaniaStop* items)
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaStop)
 }
 
-void
-rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* items)
+RconvStepmaniaBpmChange**
+rconv_stepmania_parse_bpms(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -253,11 +307,11 @@ rconv_stepmania_parse_bpms(char* data, int* len, RconvStepmaniaBpmChange* items)
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaBpmChange)
 }
 
-void
-rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSignature* items)
+RconvStepmaniaTimeSignature**
+rconv_stepmania_parse_time_signatures(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -288,16 +342,18 @@ rconv_stepmania_parse_time_signatures(char* data, int* len, RconvStepmaniaTimeSi
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaTimeSignature)
 }
 
-void
-rconv_stepmania_parse_modifiers(char* data, int* len, RconvStepmaniaModifier* items)
+RconvStepmaniaModifier**
+rconv_stepmania_parse_modifiers(char* data, int* len)
 {
+	// TOOD: Implement me
+	return NULL;
 }
 
-void
-rconv_stepmania_parse_timed_attacks(char* data, int* len, RconvStepmaniaTimedAttack* items)
+RconvStepmaniaTimedAttack**
+rconv_stepmania_parse_timed_attacks(char* data, int* len)
 {
 	/*
 	RconvList* list = rconv_list();
@@ -343,16 +399,18 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len, RconvStepmaniaTimedAtt
 	}
 	rconv_list_free(list);
 	*/
+	return NULL;
 }
 
-void
-rconv_stepmania_parse_combo_changes(char* data, int* len, RconvStepmaniaComboChange* items)
+RconvStepmaniaComboChange**
+rconv_stepmania_parse_combo_changes(char* data, int* len)
 {
 	// TODO: Implement me
+	return NULL;
 }
 
-void
-rconv_stepmania_parse_delays(char* data, int* len, RconvStepmaniaDelay* items)
+RconvStepmaniaDelay**
+rconv_stepmania_parse_delays(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -381,11 +439,11 @@ rconv_stepmania_parse_delays(char* data, int* len, RconvStepmaniaDelay* items)
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaDelay)
 }
 
-void
-rconv_stepmania_parse_tick_counts(char* data, int* len, RconvStepmaniaTickCount* items)
+RconvStepmaniaTickCount**
+rconv_stepmania_parse_tick_counts(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -414,11 +472,11 @@ rconv_stepmania_parse_tick_counts(char* data, int* len, RconvStepmaniaTickCount*
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaTickCount)
 }
 
-void
-rconv_stepmania_parse_combos(char* data, int* len, RconvStepmaniaComboChange* items)
+RconvStepmaniaComboChange**
+rconv_stepmania_parse_combos(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -449,11 +507,11 @@ rconv_stepmania_parse_combos(char* data, int* len, RconvStepmaniaComboChange* it
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaComboChange)
 }
 
-void
-rconv_stepmania_parse_speed_changes(char* data, int* len, RconvStepmaniaSpeedChange* items)
+RconvStepmaniaSpeedChange**
+rconv_stepmania_parse_speed_changes(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -486,11 +544,11 @@ rconv_stepmania_parse_speed_changes(char* data, int* len, RconvStepmaniaSpeedCha
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaSpeedChange)
 }
 
-void
-rconv_stepmania_parse_scroll_changes(char* data, int* len, RconvStepmaniaScrollSpeedChange* items)
+RconvStepmaniaScrollSpeedChange**
+rconv_stepmania_parse_scroll_changes(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -519,11 +577,11 @@ rconv_stepmania_parse_scroll_changes(char* data, int* len, RconvStepmaniaScrollS
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaScrollSpeedChange)
 }
 
-void
-rconv_stepmania_parse_fake_sections(char* data, int* len, RconvStepmaniaFakeSection* items)
+RconvStepmaniaFakeSection**
+rconv_stepmania_parse_fake_sections(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -552,11 +610,11 @@ rconv_stepmania_parse_fake_sections(char* data, int* len, RconvStepmaniaFakeSect
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaFakeSection)
 }
 
-void
-rconv_stepmania_parse_labels(char* data, int* len, RconvStepmaniaLabel* items)
+RconvStepmaniaLabel**
+rconv_stepmania_parse_labels(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
@@ -590,7 +648,7 @@ rconv_stepmania_parse_labels(char* data, int* len, RconvStepmaniaLabel* items)
 		idx++;
 	}
 
-	rconv_stepmania_clear_list(list, len, items);
+	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaLabel)
 }
 
 void
@@ -670,82 +728,41 @@ rconv_stepmania_parse(char* data)
 		} else if (utf8cmp(tag, "selectable") == 0) {
 			chart->selectable = rconv_stepmania_is_yes(content);
 		} else if (utf8cmp(tag, "bgchanges") == 0) {
-			rconv_stepmania_parse_background_changes(content, chart->background_changes_len, chart->background_changes);
+			chart->background_changes = rconv_stepmania_parse_background_changes(content, &chart->background_changes_len);
 		} else if (utf8cmp(tag, "bgchanges2") == 0) {
-			rconv_stepmania_parse_background_changes(content, chart->background_changes2_len, chart->background_changes2);
+			chart->background_changes2 = rconv_stepmania_parse_background_changes(content, &chart->background_changes2_len);
 		} else if (utf8cmp(tag, "bgchanges3") == 0) {
-			rconv_stepmania_parse_background_changes(content, chart->background_changes3_len, chart->background_changes3);
+			chart->background_changes3 = rconv_stepmania_parse_background_changes(content, &chart->background_changes3_len);
 		} else if (utf8cmp(tag, "animations") == 0) {
-			rconv_stepmania_parse_background_changes(content, chart->animations_len, chart->animations);
+			chart->animations = rconv_stepmania_parse_background_changes(content, &chart->animations_len);
 		} else if (utf8cmp(tag, "fgchanges") == 0) {
-			rconv_stepmania_parse_background_changes(content, chart->foreground_changes_len, chart->foreground_changes);
+			chart->foreground_changes = rconv_stepmania_parse_background_changes(content, &chart->foreground_changes_len);
 		} else if (utf8cmp(tag, "keysounds") == 0) {
-			RconvList* list = rconv_list();
-
-			int offset = 0;
-			int size = strlen(content);
-			int start = 0;
-			int has_content = false;
-
-			while (content < size) {
-				if (content[offset] == ',') {
-					if (!has_content) {
-						continue;
-					}
-
-					int len = offset - start;
-					char* elem = malloc((len + 1) * sizeof(char));
-					strncpy(elem, content + start, len);
-					rconv_list_add(list, elem);
-					start = offset + 1;
-					offset++;
-					has_content = false;
-					continue;
-				}
-
-				if (!rconv_stepmania_is_whitespace(content[offset]) && !has_content) {
-					has_content = true;
-					start = offset;
-				}
-				offset++;
-			}
-
-			if (has_content) {
-				int len = offset - start;
-				char* elem = malloc((len + 1) * sizeof(char));
-				strncpy(elem, content + start, len);
-				rconv_list_add(list, elem);
-			}
-
-			*chart->key_sounds = rconv_list_to_array(list, chart->key_sounds_len);
-			if (chart->key_sounds == -1) {
-				*chart->key_sounds = NULL;
-			}
-			rconv_list_free(list);
+			chart->key_sounds = rconv_stepmania_parse_string_list(content, &chart->key_sounds_len);
 		} else if (utf8cmp(tag, "stops") == 0 || utf8cmp(tag, "freezes") == 0) {
-			rconv_stepmania_parse_stops(content, chart->stops_len, chart->stops);
+			chart->stops = rconv_stepmania_parse_stops(content, &chart->stops_len);
 		} else if (utf8cmp(tag, "bpms") == 0) {
-			rconv_stepmania_parse_bpms(content, chart->bpms_len, chart->bpms);
+			chart->bpms = rconv_stepmania_parse_bpms(content, &chart->bpms_len);
 		} else if (utf8cmp(tag, "timesignatures") == 0) {
-			rconv_stepmania_parse_time_signatures(content, chart->time_signatures_len, chart->time_signatures);
+			chart->time_signatures = rconv_stepmania_parse_time_signatures(content, &chart->time_signatures_len);
 		} else if (utf8cmp(tag, "attacks") == 0) {
-			rconv_stepmania_parse_timed_attacks(content, chart->attacks_len, chart->attacks);
+			chart->attacks = rconv_stepmania_parse_timed_attacks(content, &chart->attacks_len);
 		} else if (utf8cmp(tag, "delays") == utf8cmp(tag, "warps") == 0) {
-			rconv_stepmania_parse_delays(content, chart->delays_len, chart->delays);
+			chart->delays = rconv_stepmania_parse_delays(content, &chart->delays_len);
 		} else if (utf8cmp(tag, "tickcounts") == 0) {
-			rconv_stepmania_parse_tick_counts(content, chart->tick_counts_len, chart->tick_counts);
+			chart->tick_counts = rconv_stepmania_parse_tick_counts(content, &chart->tick_counts_len);
 		} else if (utf8cmp(tag, "notes") == 0) {
 			rconv_stepmania_parse_note_data(content, notes);
 		} else if (utf8cmp(tag, "combos") == 0) {
-			rconv_stepmania_parse_combo_changes(content, chart->combos_len, chart->combos);
+			chart->combos = rconv_stepmania_parse_combo_changes(content, &chart->combos_len);
 		} else if (utf8cmp(tag, "speeds") == 0) {
-			rconv_stepmania_parse_speed_changes(content, chart->speeds_len, chart->speeds);
+			chart->speeds = rconv_stepmania_parse_speed_changes(content, &chart->speeds_len);
 		} else if (utf8cmp(tag, "scrolls") == 0) {
-			rconv_stepmania_parse_scroll_changes(content, chart->scrolls_len, chart->scrolls);
+			chart->scrolls = rconv_stepmania_parse_scroll_changes(content, &chart->scrolls_len);
 		} else if (utf8cmp(tag, "fakes") == 0) {
-			rconv_stepmania_parse_fake_sections(content, chart->fakes_len, chart->fakes);
+			chart->fakes = rconv_stepmania_parse_fake_sections(content, &chart->fakes_len);
 		} else if (utf8cmp(tag, "labels") == 0) {
-			rconv_stepmania_parse_labels(content, chart->labels_len, chart->labels);
+			chart->labels = rconv_stepmania_parse_labels(content, &chart->labels_len);
 		}
 
 		free(tag);

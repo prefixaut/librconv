@@ -21,6 +21,14 @@
  */
 #define RCONV_STEPMANIA_SPECIAL_NOTE_START 'D'
 
+#define RCONV_STEPMANIA_CLEAR_LIST(type) \
+type** items = rconv_list_to_array_##type(list, len); \
+if (*items == NULL) { \
+	*items = NULL; \
+} \
+rconv_list_free(list); \
+return items;
+
 /*
  * Types
  */
@@ -185,6 +193,25 @@ typedef struct {
 	RconvStepmaniaBeat* beats;
 } RconvStepmaniaNoteData;
 
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaBpmChange)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaStop)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaDelay)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaTimeSignature)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaInstrumentTrack)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaTickCount)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaBackgroundChange)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaModifier)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaAttack)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaTimedAttack)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaComboChange)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaSpeedChange)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaScrollSpeedChange)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaFakeSection)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaLabel)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaNote)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaBeat)
+RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaNoteData)
+
 typedef struct {
 	char* title;
 	char* subtitle;
@@ -216,7 +243,7 @@ typedef struct {
 	int foreground_changes_len;
 	RconvStepmaniaBackgroundChange** foreground_changes;
 	int key_sounds_len;
-	char* key_sounds;
+	char** key_sounds;
 	mpd_t* offset;
 	int stops_len;
 	RconvStepmaniaStop** stops;

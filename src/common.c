@@ -10,3 +10,10 @@ rconv_parse_bool(char* str)
 	utf8lwr(str);
 	return strcmp(str, "y") == 0 || strcmp(str, "yes") == 0 || strcmp(str, "true") == 0 || strcmp(str, "1") || strcmp(str, "on");
 }
+
+char*
+rconv_file_extension(RconvFileType type)
+{
+	// TODO: implement me
+	return NULL;
+}

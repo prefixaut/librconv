@@ -1,6 +1,6 @@
-#include "./memo.h";
+#include "memo.h"
 
-#include <stdlib.h>;
+#include <stdlib.h>
 
 typedef struct {
 	int len;

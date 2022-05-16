@@ -10,17 +10,17 @@ if (list->size == 0) { \
 	*array_length = 0; \
 	return NULL; \
 } \
-\
+ \
 int size = sizeof(##type*); \
 ##type** target = (##type**) malloc(list->size * size); \
 RconvListEntry* e = list->head; \
 int i = 0; \
-\
+ \
 do { \
 	*(target + (i * size)) = (##type*) e->value; \
 	e = e->next; \
 } while (i < list->size); \
-\
+ \
 return target; \
 }
 

@@ -3,7 +3,6 @@
 /*
  * Libraries
  */
-#include <mpdecimal.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,22 +68,22 @@ typedef float RconvStepmaniaColor[4];
 typedef float RconvStepmaniaRadarValues[5];
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* bpm;
+	RconvFloat* beat;
+	RconvFloat* bpm;
 } RconvStepmaniaBpmChange;
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* duration;
+	RconvFloat* beat;
+	RconvFloat* duration;
 } RconvStepmaniaStop;
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* duration;
+	RconvFloat* beat;
+	RconvFloat* duration;
 } RconvStepmaniaDelay;
 
 typedef struct {
-	mpd_t* beat;
+	RconvFloat* beat;
 	int numerator;
 	int denominator;
 } RconvStepmaniaTimeSignature;
@@ -95,14 +94,14 @@ typedef struct {
 } RconvStepmaniaInstrumentTrack;
 
 typedef struct {
-	mpd_t* beat;
+	RconvFloat* beat;
 	int count;
 } RconvStepmaniaTickCount;
 
 typedef struct {
-	mpd_t* beat;
+	RconvFloat* beat;
 	char* path;
-	mpd_t* update_rate;
+	RconvFloat* update_rate;
 	bool crossfade;
 	bool stretch_rewind;
 	bool stretch_no_loop;
@@ -117,48 +116,48 @@ typedef struct {
 	char* name;
 	char* player;
 	int approach_rate;
-	mpd_t* magnitude;
+	RconvFloat* magnitude;
 	bool is_percent;
 } RconvStepmaniaModifier;
 
 typedef struct {
-	mpd_t* length;
+	RconvFloat* length;
 	int mods_len;
 	char* mods;
 } RconvStepmaniaAttack;
 
 typedef struct {
-	mpd_t* time;
-	mpd_t* length;
+	RconvFloat* time;
+	RconvFloat* length;
 	int mods_len;
 	RconvStepmaniaModifier* mods;
 } RconvStepmaniaTimedAttack;
 
 typedef struct {
-	mpd_t* beat;
+	RconvFloat* beat;
 	int hit;
 	int miss;
 } RconvStepmaniaComboChange;
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* ratio;
-	mpd_t* duration;
+	RconvFloat* beat;
+	RconvFloat* ratio;
+	RconvFloat* duration;
 	bool in_seconds;
 } RconvStepmaniaSpeedChange;
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* factor;
+	RconvFloat* beat;
+	RconvFloat* factor;
 } RconvStepmaniaScrollSpeedChange;
 
 typedef struct {
-	mpd_t* beat;
-	mpd_t* duration;
+	RconvFloat* beat;
+	RconvFloat* duration;
 } RconvStepmaniaFakeSection;
 
 typedef struct {
-	mpd_t* beat;
+	RconvFloat* beat;
 	char* content;
 } RconvStepmaniaLabel;
 
@@ -228,8 +227,8 @@ typedef struct {
 	char* music;
 	int instrument_tracks_len;
 	RconvStepmaniaInstrumentTrack** instrument_tracks;
-	mpd_t* sample_start;
-	mpd_t* sample_length;
+	RconvFloat* sample_start;
+	RconvFloat* sample_length;
 	char* display_bpm;
 	bool selectable;
 	int background_changes_len;
@@ -244,7 +243,7 @@ typedef struct {
 	RconvStepmaniaBackgroundChange** foreground_changes;
 	int key_sounds_len;
 	char** key_sounds;
-	mpd_t* offset;
+	RconvFloat* offset;
 	int stops_len;
 	RconvStepmaniaStop** stops;
 	int bpms_len;

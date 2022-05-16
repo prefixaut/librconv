@@ -26,7 +26,7 @@ rconv_list_add(RconvList* list, void* element)
     e->value = element;
     e->next = NULL;
 
-    if (&list->head == NULL) {
+    if (list->head == NULL) {
         list->head = e;
         list->tail = e;
     } else {
@@ -48,7 +48,7 @@ rconv_list_unshift(RconvList* list, void* element)
     e->value = element;
     e->next = NULL;
 
-    if (&list->head == NULL) {
+    if (list->head == NULL) {
         list->head = e;
         list->tail = e;
     } else {

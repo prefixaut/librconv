@@ -4,6 +4,7 @@
 # Output & Build files
 /build
 /out
+/x64
 
 # CMake files
 Makefile

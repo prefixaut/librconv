@@ -54,3 +54,9 @@ rconv_default_chart_format(RconvFileType type);
 
 bool
 rconv_parse_bool(char* str);
+
+bool
+rconv_is_whitespace(char str);
+
+bool
+rconv_is_number(char str);

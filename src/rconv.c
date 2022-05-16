@@ -3,8 +3,6 @@
 int
 main()
 {
-	rconv_float_init();
-
 	char* buffer = 0;
 	long length;
 	FILE* fp;

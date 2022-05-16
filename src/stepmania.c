@@ -33,12 +33,6 @@ rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart)
 	return params;
 }
 
-bool
-rconv_stepmania_is_whitespace(char c)
-{
-	return c == ' ' || c == '\n' || c == '\r' || c == '\t';
-}
-
 void
 rconv_stepmania_parse_tags(char** data, char** tag, char** content)
 {
@@ -103,7 +97,7 @@ rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offse
 
 	while (*offset < data_len) {
 		if (state == 0) {
-			if (rconv_stepmania_is_whitespace(*(data + *offset))) {
+			if (rconv_is_whitespace(*(data + *offset))) {
 				offset++;
 				continue;
 			}
@@ -227,7 +221,7 @@ rconv_stepmania_parse_string_list(char* data, int* len)
 			continue;
 		}
 
-		if (!rconv_stepmania_is_whitespace(data[offset]) && !has_content) {
+		if (!rconv_is_whitespace(data[offset]) && !has_content) {
 			has_content = true;
 			start = offset;
 		}

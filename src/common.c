@@ -11,6 +11,22 @@ rconv_parse_bool(char* str)
 	return strcmp(str, "y") == 0 || strcmp(str, "yes") == 0 || strcmp(str, "true") == 0 || strcmp(str, "1") || strcmp(str, "on");
 }
 
+char*
+rconv_substr(const char* str, size_t start, size_t end)
+{
+	long long len = end - start;
+	if (len <= 0) {
+		return NULL;
+	}
+	// len+1 for the null-byte at the end
+	rsize_t size = (len + 1) * sizeof(char);
+	char* out = (char*) malloc(size);
+	strncpy_s(out, size, str + start, len);
+	out[len] = '\0';
+
+	return out;
+}
+
 bool
 rconv_is_whitespace(char c)
 {

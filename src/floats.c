@@ -1,5 +1,15 @@
 #include "floats.h"
 
+RconvFloat*
+rconv_float_zero()
+{
+	RconvFloat* ptr = (RconvFloat*) malloc(sizeof(RconvFloat));
+	ptr->integer = 0;
+	ptr->fraction = 0;
+
+	return ptr;
+}
+
 int
 rconv_float_from_string(RconvFloat* result, const char* str)
 {
@@ -12,7 +22,7 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 	int intStart = -1;
 	int intEnd = -1;
 
-	long fltVal = 0;
+	size_t fltVal = 0;
 	bool fltSet = false;
 	int fltStart = -1;
 	int fltEnd = -1;
@@ -25,16 +35,16 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 				offset++;
 				continue;
 			}
-			if (rconv_is_number(tmp)) {
-				intStart = offset;
-				offset++;
-				state = 2;
-				continue;
-			}
 			if (tmp == '-') {
 				intStart = offset;
 				offset++;
 				state = 1;
+				continue;
+			}
+			if (rconv_is_number(tmp)) {
+				intStart = offset;
+				offset++;
+				state = 2;
 				continue;
 			}
 
@@ -53,7 +63,7 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 
 		if (state == 2) {
 			if (tmp == '.') {
-				intEnd = offset - 1;
+				intEnd = offset;
 				offset++;
 				state = 3;
 				continue;
@@ -81,25 +91,31 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 		return RCONV_FLOAT_ERR_ILLEGAL_STATE;
 	}
 
+	if (state == 3) {
+		fltEnd = offset;
+	}
+
 	if (intStart > -1 && intEnd > -1) {
 		int len = intEnd - intStart;
 		if (len > 0) {
-			char* tmp = (char*) malloc((len + 1) * sizeof(char));
-			strcpy_s(tmp, len + 1, str + intStart);
-			intVal = atoi(tmp);
-			free(tmp);
-			intSet = true;
+			char* tmp = rconv_substr(str, intStart, intEnd);
+			if (tmp != NULL) {
+				intVal = atoll(tmp);
+				free(tmp);
+				intSet = true;
+			}
 		}
 	}
 
 	if (fltStart > -1 && fltEnd > -1) {
 		int len = fltEnd - fltStart;
 		if (len > 0) {
-			char* tmp = (char*) malloc((len + 1) * sizeof(char));
-			strcpy_s(tmp, len + 1, str + fltStart);
-			fltVal = atoi(tmp);
-			free(tmp);
-			fltSet = true;
+			char* tmp = rconv_substr(str, fltStart, fltEnd);
+			if (tmp != NULL) {
+				fltVal = atoll(tmp);
+				free(tmp);
+				fltSet = true;
+			}
 		}
 	}
 
@@ -123,7 +139,7 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 }
 
 void
-rconv_float_from_number(RconvFloat* result, long integer, long fraction)
+rconv_float_from_number(RconvFloat* result, long long integer, size_t fraction)
 {
 	result->integer = integer;
 	result->fraction = fraction;

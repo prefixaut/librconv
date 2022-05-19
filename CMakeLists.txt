@@ -21,19 +21,6 @@ target_include_directories(rconv PUBLIC
   "lib/utf8"
 )
 
-if (CMAKE_GENERATOR MATCHES "Visual Studio")
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_include_directories(rconv PUBLIC "lib/mpdecimal/vcbuild/dist64")
-    target_link_libraries(rconv "lib/mpdecimal/vcbuild/dist64/libmpdec-2.5.1.lib")
-  else()
-    target_include_directories(rconv PUBLIC "lib/mpdecimal/vcbuild/dist32")
-    target_link_libraries(rconv "lib/mpdecimal/vcbuild/dist32/libmpdec-2.5.1.lib")
-  endif()
-else()
-  target_include_directories(rconv PUBLIC "lib/mpdecimal/libmpdec")
-  target_link_libraries(rconv "lib/mpdecimal/libmpdec/libmpdec-2.5.1.a")
-endif()
-
 if(__STD_LIB_EXT1__ EQUAL 1)
   target_compile_definitions(rconv PUBLIC __STDC_WANT_LIB_EXT1__=1)
 endif()

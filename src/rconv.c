@@ -3,12 +3,12 @@
 int
 main()
 {
-	char* buffer = 0;
+	char* buffer = NULL;
 	long length;
 	FILE* fp;
 	errno_t err;
 
-	if ((err = fopen_s(&fp, "", "rb")) != 0) {
+	if ((err = fopen_s(&fp, "E:\\workspace\\librconv\\resources\\TWO-TORIAL_DourGent\\TWO-TORIAL (DourGent)\\TWO-TORIAL.sm", "r")) == 0) {
 		fseek(fp, 0, SEEK_END);
 		length = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
@@ -18,14 +18,14 @@ main()
 		}
 		fclose(fp);
 	} else {
-		puts("Error oh nooo");
+		printf("%s\n", strerror(err));
 		return 1;
 	}
 
-	if (buffer) {
+	if (buffer != NULL) {
 		RconvStepmaniaChartFile* chart = rconv_stepmania_parse(buffer);
         free(buffer);
-        printf("title: %s", chart->title);
+        printf("title: %s\n", chart->title);
         free(chart);
 	}
 

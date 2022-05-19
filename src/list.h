@@ -3,26 +3,34 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#define RCONV_LIST_TO_ARRAY_GEN_H(type) type** rconv_list_to_array_##type(RconvList* list, int* array_length);
+#define RCONV_LIST_TO_ARRAY_GEN_H_NAMED(type,name) \
+type** rconv_list_to_## name ##_array(RconvList* list, int* array_length);
 
-#define RCONV_LIST_TO_ARRAY_GEN(type) type** rconv_list_to_array_##type(RconvList* list, int* array_length) { \
+#define RCONV_LIST_TO_ARRAY_GEN_NAMED(type,name) \
+type** rconv_list_to_## name ##_array(RconvList* list, int* array_length) { \
 if (list->size == 0) { \
 	*array_length = 0; \
 	return NULL; \
 } \
  \
-int size = sizeof(##type*); \
-##type** target = (##type**) malloc(list->size * size); \
+int size = sizeof(type*); \
+type** target = (type**) malloc(list->size * size); \
 RconvListEntry* e = list->head; \
 int i = 0; \
  \
 do { \
-	*(target + (i * size)) = (##type*) e->value; \
+	*(target + (i * size)) = (type*) e->value; \
 	e = e->next; \
 } while (i < list->size); \
  \
 return target; \
 }
+
+#define RCONV_LIST_TO_ARRAY_GEN_H(type) \
+RCONV_LIST_TO_ARRAY_GEN_H_NAMED(type,type)
+
+#define RCONV_LIST_TO_ARRAY_GEN(type) \
+RCONV_LIST_TO_ARRAY_GEN_NAMED(type,type)
 
 typedef struct RconvListEntry {
 	void* value;
@@ -32,10 +40,10 @@ typedef struct RconvListEntry {
 typedef struct {
 	RconvListEntry* head;
 	RconvListEntry* tail;
-	size_t size;
+	int size;
 } RconvList;
 
-RCONV_LIST_TO_ARRAY_GEN_H(char)
+RCONV_LIST_TO_ARRAY_GEN_H_NAMED(char, string)
 
 RconvList*
 rconv_list();
@@ -61,5 +69,5 @@ rconv_list_get(RconvList* list, int index);
 void
 rconv_list_free(RconvList* list);
 
-int*
+void**
 rconv_list_to_array(RconvList* list, int* size);

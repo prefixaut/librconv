@@ -119,7 +119,7 @@ rconv_list_remove(RconvList* list, int index)
         list->size = 0;
     } else {
         RconvListEntry* newTail = list->head;
-        for (int i = 1; i < list->size - 1; i++) {
+        for (int i = 1; i < index; i++) {
             newTail = newTail->next;
         }
         list->tail = newTail;
@@ -150,7 +150,7 @@ rconv_list_free(RconvList* list)
 {
     RconvListEntry* e = list->head;
 
-    for (int i = 1; i < list->size; i++) {
+    for (size_t i = 1; i < list->size; i++) {
         RconvListEntry* tmp = e->next;
         free(e);
         e = tmp;
@@ -159,4 +159,4 @@ rconv_list_free(RconvList* list)
     free(e);
 }
 
-RCONV_LIST_TO_ARRAY_GEN(char)
+RCONV_LIST_TO_ARRAY_GEN_NAMED(char, string)

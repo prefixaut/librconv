@@ -12,15 +12,18 @@
 #define RCONV_FLOAT_ERR_INVALID_LEN 3
 
 typedef struct {
-    long integer;
-    long fraction;
+    long long integer;
+    size_t fraction;
 } RconvFloat;
+
+RconvFloat*
+rconv_float_zero();
 
 int
 rconv_float_from_string(RconvFloat* result, const char* str);
 
 void
-rconv_float_from_number(RconvFloat* result, long integer, long fraction);
+rconv_float_from_number(RconvFloat* result, long long integer, size_t fraction);
 
 void
 rconv_float_from_float(RconvFloat* result, float value);

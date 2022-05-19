@@ -52,6 +52,9 @@ rconv_file_extension(RconvFileType type);
 char*
 rconv_default_chart_format(RconvFileType type);
 
+char*
+rconv_substr(const char* str, size_t start, size_t end);
+
 bool
 rconv_parse_bool(char* str);
 

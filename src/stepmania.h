@@ -20,13 +20,16 @@
  */
 #define RCONV_STEPMANIA_SPECIAL_NOTE_START 'D'
 
-#define RCONV_STEPMANIA_CLEAR_LIST(type) \
-type** items = rconv_list_to_array_##type(list, len); \
+#define RCONV_STEPMANIA_CLEAR_LIST_NAMED(type,name) \
+type** items = rconv_list_to_##name##_array(list, len); \
 if (*items == NULL) { \
 	*items = NULL; \
 } \
 rconv_list_free(list); \
 return items;
+
+#define RCONV_STEPMANIA_CLEAR_LIST(type) \
+RCONV_STEPMANIA_CLEAR_LIST_NAMED(type,type)
 
 /*
  * Types

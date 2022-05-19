@@ -1,7 +1,7 @@
 #include "floats.h"
 
 RconvFloat*
-rconv_float_zero()
+rconv_float_new_zero()
 {
 	RconvFloat* ptr = (RconvFloat*) malloc(sizeof(RconvFloat));
 	ptr->integer = 0;
@@ -11,7 +11,7 @@ rconv_float_zero()
 }
 
 int
-rconv_float_from_string(RconvFloat* result, const char* str)
+rconv_float_set_from_string(RconvFloat* result, const char* str)
 {
 	size_t max = strlen(str);
 	int offset = 0;
@@ -139,14 +139,38 @@ rconv_float_from_string(RconvFloat* result, const char* str)
 }
 
 void
-rconv_float_from_number(RconvFloat* result, long long integer, size_t fraction)
+rconv_float_set_from_number(RconvFloat* result, long long integer, size_t fraction)
 {
 	result->integer = integer;
 	result->fraction = fraction;
 }
 
 void
-rconv_float_from_float(RconvFloat* result, float value)
+rconv_float_set_from_float(RconvFloat* result, float value)
 {
 	// TODO: Implement me
+}
+
+RconvFloat*
+rconv_float_new_from_string(const char* str)
+{
+	RconvFloat* ptr = rconv_float_new_zero();
+	rconv_float_set_from_string(ptr, str);
+	return ptr;
+}
+
+RconvFloat*
+rconv_float_new_from_number(long long integer, size_t fraction)
+{
+	RconvFloat* ptr = rconv_float_new_zero();
+	rconv_float_set_from_number(ptr, integer, fraction);
+	return ptr;
+}
+
+RconvFloat*
+rconv_float_new_from_float(float value)
+{
+	RconvFloat* ptr = rconv_float_new_zero();
+	rconv_float_set_from_float(ptr, value);
+	return ptr;
 }

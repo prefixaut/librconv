@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdlib.h>
 #include <limits.h>
 
 #define RCONV_LIST_TO_ARRAY_GEN_H_NAMED(type,name) \
@@ -19,9 +20,17 @@ RconvListEntry* e = list->head; \
 int i = 0; \
  \
 do { \
-	*(target + (i * size)) = (type*) e->value; \
+	if (e == NULL) { \
+		break; \
+	} \
+	*(target + i) = (type*) e->value; \
 	e = e->next; \
+	i++; \
 } while (i < list->size); \
+*array_length = i; \
+if (e != NULL) { \
+	*array_length += 1; \
+} \
  \
 return target; \
 }

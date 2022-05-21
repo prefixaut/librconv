@@ -1,5 +1,33 @@
 #include "./stepmania.h"
 
+#define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type,idxFn) \
+type** rconv_stepmania_parse_## type ##_list_entries(char* data, int* len) \
+{ \
+	RconvList* list = rconv_list(); \
+	type* elem = NULL; \
+	int state = 0; \
+	int idx = 0; \
+	int start = 0; \
+	int offset = 0; \
+	char* content = NULL; \
+ 	 \
+	while (true) { \
+		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(type), (void**) &elem); \
+ 		 \
+		if (content == NULL) { \
+			break; \
+		} \
+		 \
+		idxFn(elem, idx, content); \
+		 \
+		idx++; \
+	} \
+	 \
+	type** items = rconv_list_to_## type ##_array(list, len); \
+	rconv_list_free(list); \
+	return items; \
+}
+
 RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaBpmChange)
 RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaStop)
 RCONV_LIST_TO_ARRAY_GEN(RconvStepmaniaDelay)
@@ -145,64 +173,6 @@ rconv_stepmania_parse_partial(char* data, int* index, char** content, int* offse
 	}
 }
 
-RconvStepmaniaBackgroundChange**
-rconv_stepmania_parse_background_changes(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaBackgroundChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaBackgroundChange), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		bool free_content = true;
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->path = content;
-			free_content = false;
-		} else if (idx == 2) {
-			elem->update_rate = rconv_float_new_from_string(content);
-		} else if (idx == 3) {
-			elem->crossfade = rconv_parse_bool(content);
-		} else if (idx == 4) {
-			elem->stretch_rewind = rconv_parse_bool(content);
-		} else if (idx == 5) {
-			elem->stretch_no_loop = rconv_parse_bool(content);
-		} else if (idx == 6) {
-			elem->effect = content;
-			free_content = false;
-		} else if (idx == 7) {
-			elem->file2 = content;
-			free_content = false;
-		} else if (idx == 8) {
-			elem->transition = content;
-			free_content = false;
-		} else if (idx == 9) {
-			// TODO: parse color
-		} else if (idx == 10) {
-			// TODO: parse color
-		}
-
-		if (free_content) {
-			free(content);
-		}
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaBackgroundChange)
-}
-
 char**
 rconv_stepmania_parse_string_list(char* data, int* len)
 {
@@ -246,105 +216,167 @@ rconv_stepmania_parse_string_list(char* data, int* len)
 	RCONV_STEPMANIA_CLEAR_LIST_NAMED(char,string)
 }
 
-RconvStepmaniaStop**
-rconv_stepmania_parse_stops(char* data, int* len)
+void
+rconv_stepmania_handle_background_change_entry(RconvStepmaniaBackgroundChange* elem, int idx, char* content)
 {
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaStop* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaStop), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->duration = rconv_float_new_from_string(content);
-		}
-
-		free(content);
-
-		idx++;
+	bool free_content = true;
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->path = content;
+		free_content = false;
+	} else if (idx == 2) {
+		elem->update_rate = rconv_float_new_from_string(content);
+	} else if (idx == 3) {
+		elem->crossfade = rconv_parse_bool(content);
+	} else if (idx == 4) {
+		elem->stretch_rewind = rconv_parse_bool(content);
+	} else if (idx == 5) {
+		elem->stretch_no_loop = rconv_parse_bool(content);
+	} else if (idx == 6) {
+		elem->effect = content;
+		free_content = false;
+	} else if (idx == 7) {
+		elem->file2 = content;
+		free_content = false;
+	} else if (idx == 8) {
+		elem->transition = content;
+		free_content = false;
+	} else if (idx == 9) {
+		// TODO: parse color
+	} else if (idx == 10) {
+		// TODO: parse color
 	}
 
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaStop)
+	if (free_content) {
+		free(content);
+	}
 }
 
-RconvStepmaniaBpmChange**
-rconv_stepmania_parse_bpms(char* data, int* len)
+void
+rconv_stepmania_handle_stop_entry(RconvStepmaniaStop* elem, int idx, char* content)
 {
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaBpmChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaBpmChange), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->bpm = rconv_float_new_from_string(content);
-		}
-
-		free(content);
-
-		idx++;
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->duration = rconv_float_new_from_string(content);
 	}
 
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaBpmChange)
+	free(content);
 }
 
-RconvStepmaniaTimeSignature**
-rconv_stepmania_parse_time_signatures(char* data, int* len)
+void
+rconv_stepmania_handle_bpm_change_entry(RconvStepmaniaBpmChange* elem, int idx, char* content)
 {
-	RconvList* list = rconv_list();
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->bpm = rconv_float_new_from_string(content);
+	}
+	free(content);
+}
 
-	RconvStepmaniaTimeSignature* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaTimeSignature), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->numerator = atoi(content);
-		} else if (idx == 2) {
-			elem->denominator = atoi(content);
-		}
-
-		free(content);
-
-		idx++;
+void
+rconv_stepmania_handle_time_signature_entry(RconvStepmaniaTimeSignature* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->numerator = atoi(content);
+	} else if (idx == 2) {
+		elem->denominator = atoi(content);
 	}
 
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaTimeSignature)
+	free(content);
+}
+
+void
+rconv_stepmania_handle_combo_change_entry(RconvStepmaniaComboChange* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->hit = atoi(content);
+	} else if (idx == 2) {
+		elem->miss = atoi(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_delay_entry(RconvStepmaniaDelay* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->duration = rconv_float_new_from_string(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_tick_count_entry(RconvStepmaniaTickCount* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->count = atoi(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_speed_change_entry(RconvStepmaniaSpeedChange* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->ratio = rconv_float_new_from_string(content);
+	} else if (idx == 2) {
+		elem->duration = rconv_float_new_from_string(content);
+	} else if (idx == 3) {
+		elem->in_seconds = rconv_parse_bool(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_scroll_speed_change_entry(RconvStepmaniaScrollSpeedChange* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->factor = rconv_float_new_from_string(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_fake_section_entry(RconvStepmaniaFakeSection* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+	} else if (idx == 1) {
+		elem->duration = rconv_float_new_from_string(content);
+	}
+
+	free(content);
+}
+
+void
+rconv_stepmania_handle_label_entry(RconvStepmaniaLabel* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->beat = rconv_float_new_from_string(content);
+		free(content);
+	} else if (idx == 1) {
+		elem->content = content;
+	}
 }
 
 RconvStepmaniaModifier**
@@ -404,282 +436,17 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 	return NULL;
 }
 
-RconvStepmaniaComboChange**
-rconv_stepmania_parse_combo_changes(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaComboChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaDelay), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->hit = atoi(content);
-		} else if (idx == 2) {
-			elem->miss = atoi(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaComboChange)
-}
-
-RconvStepmaniaDelay**
-rconv_stepmania_parse_delays(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaDelay* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaDelay), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->duration = rconv_float_new_from_string(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaDelay)
-}
-
-RconvStepmaniaTickCount**
-rconv_stepmania_parse_tick_counts(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaTickCount* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaTickCount), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->count = atoi(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaTickCount)
-}
-
-RconvStepmaniaComboChange**
-rconv_stepmania_parse_combos(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaComboChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaComboChange), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->hit = atoi(content);
-		} else if (idx == 2) {
-			elem->miss = atoi(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaComboChange)
-}
-
-RconvStepmaniaSpeedChange**
-rconv_stepmania_parse_speed_changes(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaSpeedChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaSpeedChange), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->ratio = rconv_float_new_from_string(content);
-		} else if (idx == 2) {
-			elem->duration = rconv_float_new_from_string(content);
-		} else if (idx == 3) {
-			elem->in_seconds = rconv_parse_bool(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaSpeedChange)
-}
-
-RconvStepmaniaScrollSpeedChange**
-rconv_stepmania_parse_scroll_changes(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaScrollSpeedChange* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaScrollSpeedChange), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->factor = rconv_float_new_from_string(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaScrollSpeedChange)
-}
-
-RconvStepmaniaFakeSection**
-rconv_stepmania_parse_fake_sections(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaFakeSection* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaFakeSection), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->duration = rconv_float_new_from_string(content);
-		}
-
-		free(content);
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaFakeSection)
-}
-
-RconvStepmaniaLabel**
-rconv_stepmania_parse_labels(char* data, int* len)
-{
-	RconvList* list = rconv_list();
-
-	RconvStepmaniaLabel* elem = NULL;
-	int state = 0;
-	int idx = 0;
-	int start = 0;
-	int offset = 0;
-	char* content = NULL;
-
-	while (true) {
-		rconv_stepmania_parse_partial(data, &idx, &content, &offset, &state, list, sizeof(RconvStepmaniaLabel), (void**) &elem);
-
-		if (content == NULL) {
-			break;
-		}
-
-		bool free_content = true;
-
-		if (idx == 0) {
-			elem->beat = rconv_float_new_from_string(content);
-		} else if (idx == 1) {
-			elem->content = content;
-			free_content = false;
-		}
-
-		if (free_content) {
-			free(content);
-		}
-
-		idx++;
-	}
-
-	RCONV_STEPMANIA_CLEAR_LIST(RconvStepmaniaLabel)
-}
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaBpmChange, rconv_stepmania_handle_bpm_change_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaStop, rconv_stepmania_handle_stop_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaDelay, rconv_stepmania_handle_delay_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaTimeSignature, rconv_stepmania_handle_time_signature_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaTickCount, rconv_stepmania_handle_tick_count_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaBackgroundChange, rconv_stepmania_handle_background_change_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaComboChange, rconv_stepmania_handle_combo_change_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaSpeedChange, rconv_stepmania_handle_speed_change_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaScrollSpeedChange, rconv_stepmania_handle_scroll_speed_change_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaFakeSection, rconv_stepmania_handle_fake_section_entry)
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(RconvStepmaniaLabel, rconv_stepmania_handle_label_entry)
 
 void
 rconv_stepmania_parse_chart_type(char* data, RconvStepmaniaChartType* type)
@@ -912,41 +679,42 @@ rconv_stepmania_parse(char* data)
 		} else if (utf8cmp(tag, "selectable") == 0) {
 			chart->selectable = rconv_stepmania_is_yes(content);
 		} else if (utf8cmp(tag, "bgchanges") == 0) {
-			chart->background_changes = rconv_stepmania_parse_background_changes(content, &chart->background_changes_len);
+			chart->background_changes = rconv_stepmania_parse_RconvStepmaniaBackgroundChange_list_entries(content, &chart->background_changes_len);
 		} else if (utf8cmp(tag, "bgchanges2") == 0) {
-			chart->background_changes2 = rconv_stepmania_parse_background_changes(content, &chart->background_changes2_len);
+			chart->background_changes2 = rconv_stepmania_parse_RconvStepmaniaBackgroundChange_list_entries(content, &chart->background_changes2_len);
 		} else if (utf8cmp(tag, "bgchanges3") == 0) {
-			chart->background_changes3 = rconv_stepmania_parse_background_changes(content, &chart->background_changes3_len);
+			chart->background_changes3 = rconv_stepmania_parse_RconvStepmaniaBackgroundChange_list_entries(content, &chart->background_changes3_len);
 		} else if (utf8cmp(tag, "animations") == 0) {
-			chart->animations = rconv_stepmania_parse_background_changes(content, &chart->animations_len);
+			chart->animations = rconv_stepmania_parse_RconvStepmaniaBackgroundChange_list_entries(content, &chart->animations_len);
 		} else if (utf8cmp(tag, "fgchanges") == 0) {
-			chart->foreground_changes = rconv_stepmania_parse_background_changes(content, &chart->foreground_changes_len);
+			chart->foreground_changes = rconv_stepmania_parse_RconvStepmaniaBackgroundChange_list_entries(content, &chart->foreground_changes_len);
 		} else if (utf8cmp(tag, "keysounds") == 0) {
 			chart->key_sounds = rconv_stepmania_parse_string_list(content, &chart->key_sounds_len);
 		} else if (utf8cmp(tag, "stops") == 0 || utf8cmp(tag, "freezes") == 0) {
-			chart->stops = rconv_stepmania_parse_stops(content, &chart->stops_len);
+			chart->stops = rconv_stepmania_parse_RconvStepmaniaStop_list_entries(content, &chart->stops_len);
 		} else if (utf8cmp(tag, "bpms") == 0) {
-			chart->bpms = rconv_stepmania_parse_bpms(content, &chart->bpms_len);
+			chart->bpms = rconv_stepmania_parse_RconvStepmaniaBpmChange_list_entries(content, &chart->bpms_len);
+			printf("bpms: ptr(%p) len(%d)", chart->bpms, chart->bpms_len);
 		} else if (utf8cmp(tag, "timesignatures") == 0) {
-			chart->time_signatures = rconv_stepmania_parse_time_signatures(content, &chart->time_signatures_len);
+			chart->time_signatures = rconv_stepmania_parse_RconvStepmaniaTimeSignature_list_entries(content, &chart->time_signatures_len);
 		} else if (utf8cmp(tag, "attacks") == 0) {
 			chart->attacks = rconv_stepmania_parse_timed_attacks(content, &chart->attacks_len);
 		} else if (utf8cmp(tag, "delays") == utf8cmp(tag, "warps") == 0) {
-			chart->delays = rconv_stepmania_parse_delays(content, &chart->delays_len);
+			chart->delays = rconv_stepmania_parse_RconvStepmaniaDelay_list_entries(content, &chart->delays_len);
 		} else if (utf8cmp(tag, "tickcounts") == 0) {
-			chart->tick_counts = rconv_stepmania_parse_tick_counts(content, &chart->tick_counts_len);
+			chart->tick_counts = rconv_stepmania_parse_RconvStepmaniaTickCount_list_entries(content, &chart->tick_counts_len);
 		} else if (utf8cmp(tag, "notes") == 0) {
 			rconv_stepmania_parse_note_data(content, notes);
 		} else if (utf8cmp(tag, "combos") == 0) {
-			chart->combos = rconv_stepmania_parse_combo_changes(content, &chart->combos_len);
+			chart->combos = rconv_stepmania_parse_RconvStepmaniaComboChange_list_entries(content, &chart->combos_len);
 		} else if (utf8cmp(tag, "speeds") == 0) {
-			chart->speeds = rconv_stepmania_parse_speed_changes(content, &chart->speeds_len);
+			chart->speeds = rconv_stepmania_parse_RconvStepmaniaSpeedChange_list_entries(content, &chart->speeds_len);
 		} else if (utf8cmp(tag, "scrolls") == 0) {
-			chart->scrolls = rconv_stepmania_parse_scroll_changes(content, &chart->scrolls_len);
+			chart->scrolls = rconv_stepmania_parse_RconvStepmaniaScrollSpeedChange_list_entries(content, &chart->scrolls_len);
 		} else if (utf8cmp(tag, "fakes") == 0) {
-			chart->fakes = rconv_stepmania_parse_fake_sections(content, &chart->fakes_len);
+			chart->fakes = rconv_stepmania_parse_RconvStepmaniaFakeSection_list_entries(content, &chart->fakes_len);
 		} else if (utf8cmp(tag, "labels") == 0) {
-			chart->labels = rconv_stepmania_parse_labels(content, &chart->labels_len);
+			chart->labels = rconv_stepmania_parse_RconvStepmaniaLabel_list_entries(content, &chart->labels_len);
 		} else {
 			printf("unknown tag '%s'!\n", tag);
 			break;
@@ -959,4 +727,522 @@ rconv_stepmania_parse(char* data)
 	}
 
 	return chart;
+}
+
+void
+rconv_stepmania_free_bpm_change(RconvStepmaniaBpmChange* bpm_change)
+{
+	if (bpm_change == NULL) {
+		return;
+	}
+
+	free(bpm_change->beat);
+	bpm_change->beat = NULL;
+
+	free(bpm_change->bpm);
+	bpm_change->bpm = NULL;
+
+	free(bpm_change);
+}
+
+void
+rconv_stepmania_free_stop(RconvStepmaniaStop* stop)
+{
+	if (stop == NULL) {
+		return;
+	}
+
+	free(stop->beat);
+	stop->beat = NULL;
+
+	free(stop->duration);
+	stop->duration = NULL;
+
+	free(stop);
+}
+
+void
+rconv_stepmania_free_delay(RconvStepmaniaDelay* delay)
+{
+	if (delay == NULL) {
+		return;
+	}
+
+	free(delay->beat);
+	delay->beat = NULL;
+
+	free(delay->duration);
+	delay->duration = NULL;
+
+	free(delay);
+}
+
+void
+rconv_stepmania_free_time_signature(RconvStepmaniaTimeSignature* time_signature)
+{
+	if (time_signature == NULL) {
+		return;
+	}
+
+	free(time_signature->beat);
+	time_signature->beat = NULL;
+
+	free(time_signature);
+}
+
+void
+rconv_stepmania_free_instrument_track(RconvStepmaniaInstrumentTrack* instrument_track)
+{
+	if (instrument_track == NULL) {
+		return;
+	}
+
+	free(instrument_track->file);
+	instrument_track->file = NULL;
+
+	free(instrument_track->instrument);
+	instrument_track->instrument = NULL;
+
+	free(instrument_track);
+}
+
+void
+rconv_stepmania_free_tick_count(RconvStepmaniaTickCount* tick_count)
+{
+	if (tick_count == NULL) {
+		return;
+	}
+
+	free(tick_count->beat);
+	tick_count->beat = NULL;
+
+	free(tick_count);
+}
+
+void
+rconv_stepmania_free_background_change(RconvStepmaniaBackgroundChange* background_change)
+{
+	if (background_change == NULL) {
+		return;
+	}
+
+	free(background_change->beat);
+	background_change->beat = NULL;
+
+	free(background_change->path);
+	background_change->path = NULL;
+
+	free(background_change->update_rate);
+	background_change->update_rate = NULL;
+
+	free(background_change->effect);
+	background_change->effect = NULL;
+
+	free(background_change->file2);
+	background_change->file2 = NULL;
+
+	free(background_change->transition);
+	background_change->transition = NULL;
+
+	free(background_change->color1);
+	background_change->color1 = NULL;
+
+	free(background_change->color2);
+	background_change->color2 = NULL;
+
+	free(background_change);
+}
+
+void
+rconv_stepmania_free_modifier(RconvStepmaniaModifier* modifier)
+{
+	if (modifier == NULL) {
+		return;
+	}
+
+	free(modifier->name);
+	modifier->name = NULL;
+
+	free(modifier->player);
+	modifier->player = NULL;
+
+	free(modifier->magnitude);
+	modifier->magnitude = NULL;
+
+	free(modifier);
+}
+
+void
+rconv_stepmania_free_attack(RconvStepmaniaAttack* attack)
+{
+	if (attack == NULL) {
+		return;
+	}
+
+	free(attack->length);
+	attack->length = NULL;
+
+	for (int i = 0; i < attack->mods_len; i++) {
+		free(*(attack->mods + i));
+	}
+
+	free(attack->mods);
+	attack->mods = NULL;
+
+	free(attack);
+}
+
+void
+rconv_stepmania_free_timed_attack(RconvStepmaniaTimedAttack* timed_attack)
+{
+	if (timed_attack == NULL) {
+		return;
+	}
+
+	free(timed_attack->time);
+	timed_attack->time = NULL;
+
+	free(timed_attack->length);
+	timed_attack->length = NULL;
+
+	for (int i = 0; i < timed_attack->mods_len; i++) {
+		rconv_stepmania_free_modifier(*(timed_attack->mods + 1));
+	}
+	
+	free(timed_attack->mods);
+	timed_attack->mods = NULL;
+
+	free(timed_attack);
+}
+
+void
+rconv_stepmania_free_combo_change(RconvStepmaniaComboChange* combo_change)
+{
+	if (combo_change == NULL) {
+		return;
+	}
+
+	free(combo_change->beat);
+	combo_change->beat == NULL;
+
+	free(combo_change);
+}
+
+void
+rconv_stepmania_free_speed_change(RconvStepmaniaSpeedChange* speed_change)
+{
+	if (speed_change == NULL) {
+		return;
+	}
+
+	free(speed_change->beat);
+	speed_change->beat == NULL;
+
+	free(speed_change->ratio);
+	speed_change->ratio = NULL;
+
+	free(speed_change->duration);
+	speed_change->duration = NULL;
+
+	free(speed_change);
+}
+
+void
+rconv_stepmania_free_scroll_speed_change(RconvStepmaniaScrollSpeedChange* scroll_speed_change)
+{
+	if (scroll_speed_change == NULL) {
+		return;
+	}
+
+	free(scroll_speed_change->beat);
+	scroll_speed_change->beat = NULL;
+
+	free(scroll_speed_change->factor);
+	scroll_speed_change->factor = NULL;
+
+	free(scroll_speed_change);
+}
+
+void
+rconv_stepmania_free_fake_section(RconvStepmaniaFakeSection* fake_section)
+{
+	if (fake_section == NULL) {
+		return;
+	}
+
+	free(fake_section->beat);
+	fake_section->beat = NULL;
+
+	free(fake_section->duration);
+	fake_section->duration = NULL;
+
+	free(fake_section);
+}
+
+void
+rconv_stepmania_free_label(RconvStepmaniaLabel* label)
+{
+	if (label == NULL) {
+		return;
+	}
+
+	free(label->beat);
+	label->beat = NULL;
+
+	free(label->content);
+	label->content = NULL;
+
+	free(label);
+}
+
+void
+rconv_stepmania_free_note(RconvStepmaniaNote* note)
+{
+	if (note == NULL) {
+		return;
+	}
+
+	for (int i = 0; i < note->attack_len; i++) {
+		rconv_stepmania_free_attack(*(note->attack + i));
+	}
+
+	free(note->attack);
+	note->attack = NULL;
+
+	for (int i = 0; i < note->modifiers_len; i++) {
+		rconv_stepmania_free_modifier(*(note->modifiers + i));
+	}
+
+	free(note->modifiers);
+	note->modifiers = NULL;
+
+	free(note);
+}
+
+void
+rconv_stepmania_free_beat(RconvStepmaniaBeat* beat)
+{
+	if (beat == NULL) {
+		return;
+	}
+	for (int i = 0; i < beat->notes_len; i++) {
+		rconv_stepmania_free_note(*(beat->notes + i));
+	}
+	free(beat->notes);
+	beat->notes = NULL;
+	free(beat);
+}
+
+void
+rconv_stepmania_free_note_data(RconvStepmaniaNoteData* note_data)
+{
+	if (note_data == NULL) {
+		return;
+	}
+
+	free(note_data->description);
+	note_data->description = NULL;
+
+	for (int i = 0; i < note_data->beats_len; i++) {
+		rconv_stepmania_free_beat(*(note_data->beats + i));
+	}
+
+	free(note_data->beats);
+	note_data->beats = NULL;
+
+	free(note_data);
+}
+
+void
+rconv_stepmania_free_chart_file(RconvStepmaniaChartFile* chart_file)
+{
+	if (chart_file == NULL) {
+		return;
+	}
+
+	free(chart_file->title);
+	chart_file->title = NULL;
+
+	free(chart_file->subtitle);
+	chart_file->subtitle = NULL;
+
+	free(chart_file->artist);
+	chart_file->artist = NULL;
+
+	free(chart_file->title_transliterated);
+	chart_file->title_transliterated = NULL;
+
+	free(chart_file->subtitle_transliterated);
+	chart_file->subtitle_transliterated = NULL;
+
+	free(chart_file->artist_transliterated);
+	chart_file->artist_transliterated = NULL;
+
+	free(chart_file->genre);
+	chart_file->genre = NULL;
+
+	free(chart_file->credit);
+	chart_file->credit = NULL;
+
+	free(chart_file->banner);
+	chart_file->banner = NULL;
+
+	free(chart_file->background);
+	chart_file->background = NULL;
+
+	free(chart_file->lyrics);
+	chart_file->lyrics = NULL;
+
+	free(chart_file->cd_title);
+	chart_file->cd_title = NULL;
+
+	free(chart_file->music);
+	chart_file->music = NULL;
+
+	for (int i = 0; i < chart_file->instrument_tracks_len; i++) {
+		rconv_stepmania_free_instrument_track(*(chart_file->instrument_tracks + i));
+	}
+
+	free(chart_file->instrument_tracks);
+	chart_file->instrument_tracks = NULL;
+
+	free(chart_file->sample_start);
+	chart_file->sample_start = NULL;
+
+	free(chart_file->sample_length);
+	chart_file->sample_length = NULL;
+
+	free(chart_file->display_bpm);
+	chart_file->display_bpm = NULL;
+
+	for (int i = 0; i < chart_file->background_changes_len; i++) {
+		rconv_stepmania_free_background_change(*(chart_file->background_changes + i));
+	}
+
+	free(chart_file->background_changes);
+	chart_file->background_changes = NULL;
+
+	for (int i = 0; i < chart_file->background_changes2_len; i++) {
+		rconv_stepmania_free_background_change(*(chart_file->background_changes2 + i));
+	}
+
+	free(chart_file->background_changes2);
+	chart_file->background_changes2 = NULL;
+
+	for (int i = 0; i < chart_file->background_changes3_len; i++) {
+		rconv_stepmania_free_background_change(*(chart_file->background_changes3 + i));
+	}
+
+	free(chart_file->background_changes3);
+	chart_file->background_changes3 = NULL;
+
+	for (int i = 0; i < chart_file->animations_len; i++) {
+		rconv_stepmania_free_background_change(*(chart_file->animations + i));
+	}
+
+	free(chart_file->animations);
+	chart_file->animations = NULL;
+
+	for (int i = 0; i < chart_file->foreground_changes_len; i++) {
+		rconv_stepmania_free_background_change(*(chart_file->foreground_changes + i));
+	}
+
+	free(chart_file->foreground_changes);
+	chart_file->foreground_changes = NULL;
+
+	for (int i = 0; i < chart_file->key_sounds_len; i++) {
+		free(*(chart_file->key_sounds + i));
+	}
+
+	free(chart_file->key_sounds);
+	chart_file->key_sounds = NULL;
+
+	free(chart_file->offset);
+	chart_file->offset = NULL;
+
+	for (int i = 0; i < chart_file->stops_len; i++) {
+		rconv_stepmania_free_stop(*(chart_file->stops + i));
+	}
+
+	free(chart_file->stops);
+	chart_file->stops = NULL;
+
+	for (int i = 0; i < chart_file->bpms_len; i++) {
+		rconv_stepmania_free_bpm_change(*(chart_file->bpms + i));
+	}
+
+	free(chart_file->bpms);
+	chart_file->bpms = NULL;
+
+	for (int i = 0; i < chart_file->time_signatures_len; i++) {
+		rconv_stepmania_free_time_signature(*(chart_file->time_signatures + i));
+	}
+
+	free(chart_file->time_signatures);
+	chart_file->time_signatures = NULL;
+
+	for (int i = 0; i < chart_file->attacks_len; i++) {
+		rconv_stepmania_free_attack(*(chart_file->attacks + i));
+	}
+
+	free(chart_file->attacks);
+	chart_file->attacks = NULL;
+
+	for (int i = 0; i < chart_file->delays_len; i++) {
+		rconv_stepmania_free_delay(*(chart_file->delays + i));
+	}
+
+	free(chart_file->delays);
+	chart_file->delays = NULL;
+
+	for (int i = 0; i < chart_file->tick_counts_len; i++) {
+		rconv_stepmania_free_tick_count(*(chart_file->tick_counts + i));
+	}
+
+	free(chart_file->tick_counts);
+	chart_file->tick_counts = NULL;
+
+	for (int i = 0; i < chart_file->note_data_len; i++) {
+		rconv_stepmania_free_note_data(*(chart_file->note_data + i));
+	}
+
+	free(chart_file->note_data);
+	chart_file->note_data = NULL;
+
+	for (int i = 0; i < chart_file->combos_len; i++) {
+		rconv_stepmania_free_combo_change(*(chart_file->combos + i));
+	}
+
+	free(chart_file->combos);
+	chart_file->combos = NULL;
+
+	for (int i = 0; i < chart_file->speeds_len; i++) {
+		rconv_stepmania_free_speed_change(*(chart_file->speeds + i));
+	}
+
+	free(chart_file->speeds);
+	chart_file->speeds = NULL;
+
+	for (int i = 0; i < chart_file->scrolls_len; i++) {
+		rconv_stepmania_free_scroll_speed_change(*(chart_file->scrolls + i));
+	}
+
+	free(chart_file->scrolls);
+	chart_file->scrolls = NULL;
+
+	for (int i = 0; i < chart_file->fakes_len; i++) {
+		rconv_stepmania_free_fake_section(*(chart_file->fakes + i));
+	}
+
+	free(chart_file->fakes);
+	chart_file->fakes = NULL;
+
+	for (int i = 0; i < chart_file->labels_len; i++) {
+		rconv_stepmania_free_label(*(chart_file->labels + i));
+	}
+
+	free(chart_file->labels);
+	chart_file->labels = NULL;
+
+	free(chart_file);
 }

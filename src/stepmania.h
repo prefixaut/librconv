@@ -126,14 +126,14 @@ typedef struct {
 typedef struct {
 	RconvFloat* length;
 	int mods_len;
-	char* mods;
+	char** mods;
 } RconvStepmaniaAttack;
 
 typedef struct {
 	RconvFloat* time;
 	RconvFloat* length;
 	int mods_len;
-	RconvStepmaniaModifier* mods;
+	RconvStepmaniaModifier** mods;
 } RconvStepmaniaTimedAttack;
 
 typedef struct {
@@ -169,10 +169,10 @@ typedef struct {
 	int snap;
 	int column;
 	int attack_len;
-	RconvStepmaniaAttack* attack;
+	RconvStepmaniaAttack** attack;
 	int key_sound;
 	int modifiers_len;
-	RconvStepmaniaModifier* modifiers;
+	RconvStepmaniaModifier** modifiers;
 	int release_beat;
 	int release_snap;
 	bool release_lift;
@@ -192,7 +192,7 @@ typedef struct {
 	int level;
 	RconvStepmaniaRadarValues radar_values;
 	int beats_len;
-	RconvStepmaniaBeat* beats;
+	RconvStepmaniaBeat** beats;
 } RconvStepmaniaNoteData;
 
 RCONV_LIST_TO_ARRAY_GEN_H(RconvStepmaniaBpmChange)
@@ -281,3 +281,60 @@ rconv_stepmania_parse(char* data);
 
 RconvFormattingParameters
 rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);
+
+void
+rconv_stepmania_free_bpm_change(RconvStepmaniaBpmChange* bpm_change);
+
+void
+rconv_stepmania_free_stop(RconvStepmaniaStop* stop);
+
+void
+rconv_stepmania_free_delay(RconvStepmaniaDelay* delay);
+
+void
+rconv_stepmania_free_time_signature(RconvStepmaniaTimeSignature* time_signature);
+
+void
+rconv_stepmania_free_instrument_track(RconvStepmaniaInstrumentTrack* instrument_track);
+
+void
+rconv_stepmania_free_tick_count(RconvStepmaniaTickCount* tick_count);
+
+void
+rconv_stepmania_free_background_change(RconvStepmaniaBackgroundChange* background_change);
+
+void
+rconv_stepmania_free_modifier(RconvStepmaniaModifier* modifier);
+
+void
+rconv_stepmania_free_attack(RconvStepmaniaAttack* attack);
+
+void
+rconv_stepmania_free_timed_attack(RconvStepmaniaTimedAttack* timed_attack);
+
+void
+rconv_stepmania_free_combo_change(RconvStepmaniaComboChange* combo_change);
+
+void
+rconv_stepmania_free_speed_change(RconvStepmaniaSpeedChange* speed_change);
+
+void
+rconv_stepmania_free_scroll_speed_change(RconvStepmaniaScrollSpeedChange* scroll_speed_change);
+
+void
+rconv_stepmania_free_fake_section(RconvStepmaniaFakeSection* fake_section);
+
+void
+rconv_stepmania_free_label(RconvStepmaniaLabel* label);
+
+void
+rconv_stepmania_free_note(RconvStepmaniaNote* note);
+
+void
+rconv_stepmania_free_beat(RconvStepmaniaBeat* beat);
+
+void
+rconv_stepmania_free_note_data(RconvStepmaniaNoteData* note_data);
+
+void
+rconv_stepmania_free_chart_file(RconvStepmaniaChartFile* chart_file);

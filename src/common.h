@@ -63,3 +63,6 @@ rconv_is_whitespace(char str);
 
 bool
 rconv_is_number(char str);
+
+void
+rconv_free_all_strings(int len, char** strings);

@@ -6,6 +6,9 @@
 /out
 /x64
 
+# Generated files
+/src/rconv.h
+
 # CMake files
 Makefile
 

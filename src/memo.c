@@ -22,6 +22,6 @@ _rconv_memo_hold_offset(int position)
 RconvMemoTokenElement*
 _rconv_memo_parse_tokens(char* data[], int from, int to)
 {
-	RconvMemoTokenElement* elem = malloc(1 * sizeof(RconvMemoTokenElement));
+	RconvMemoTokenElement* elem = malloc(sizeof(RconvMemoTokenElement));
 	return elem;
 }

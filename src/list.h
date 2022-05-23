@@ -16,6 +16,7 @@ if (list->size == 0) { \
  \
 int size = sizeof(type*); \
 type** target = (type**) malloc(list->size * size); \
+printf("to array: ptr(%p)\n", target); \
 RconvListEntry* e = list->head; \
 int i = 0; \
  \
@@ -23,10 +24,12 @@ do { \
 	if (e == NULL) { \
 		break; \
 	} \
-	*(target + i) = (type*) e->value; \
+	target[i] = (type*) e->value; \
+	printf("to array: idx(%d) val(%p) next(%p)\n", i, target[i], e->next); \
 	e = e->next; \
 	i++; \
 } while (i < list->size); \
+printf("END HEL:P\n"); \
 *array_length = i; \
 if (e != NULL) { \
 	*array_length += 1; \

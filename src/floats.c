@@ -1,7 +1,7 @@
 #include "floats.h"
 
 RconvFloat*
-rconv_float_new_zero()
+rconv_float_new()
 {
 	RconvFloat* ptr = (RconvFloat*) malloc(sizeof(RconvFloat));
 	ptr->integer = 0;
@@ -154,7 +154,7 @@ rconv_float_set_from_float(RconvFloat* result, float value)
 RconvFloat*
 rconv_float_new_from_string(const char* str)
 {
-	RconvFloat* ptr = rconv_float_new_zero();
+	RconvFloat* ptr = rconv_float_new();
 	rconv_float_set_from_string(ptr, str);
 	return ptr;
 }
@@ -162,7 +162,7 @@ rconv_float_new_from_string(const char* str)
 RconvFloat*
 rconv_float_new_from_number(long long integer, size_t fraction)
 {
-	RconvFloat* ptr = rconv_float_new_zero();
+	RconvFloat* ptr = rconv_float_new();
 	rconv_float_set_from_number(ptr, integer, fraction);
 	return ptr;
 }
@@ -170,7 +170,7 @@ rconv_float_new_from_number(long long integer, size_t fraction)
 RconvFloat*
 rconv_float_new_from_float(float value)
 {
-	RconvFloat* ptr = rconv_float_new_zero();
+	RconvFloat* ptr = rconv_float_new();
 	rconv_float_set_from_float(ptr, value);
 	return ptr;
 }

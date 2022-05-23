@@ -17,7 +17,7 @@ typedef struct {
 } RconvFloat;
 
 RconvFloat*
-rconv_float_new_zero();
+rconv_float_new();
 
 int
 rconv_float_set_from_string(RconvFloat* result, const char* str);

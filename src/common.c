@@ -45,3 +45,12 @@ rconv_file_extension(RconvFileType type)
 	// TODO: implement me
 	return NULL;
 }
+
+void
+rconv_free_all_strings(int len, char** strings)
+{
+	for (int i = 0; i < len; i++) {
+		free(strings + i);
+	}
+	free(strings);
+}

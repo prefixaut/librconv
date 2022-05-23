@@ -26,7 +26,7 @@ main()
 		RconvStepmaniaChartFile* chart = rconv_stepmania_parse(buffer);
         free(buffer);
         printf("title: %s\n", chart->title);
-        free(chart);
+        rconv_stepmania_free_chart_file(chart);
 	}
 
     return 0;

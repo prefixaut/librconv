@@ -4,6 +4,7 @@
  * Libraries
  */
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <utf8.h>
@@ -20,109 +21,106 @@
  */
 #define RCONV_STEPMANIA_SPECIAL_NOTE_START 'D'
 
-#define RCONV_STEPMANIA_CLEAR_LIST_NAMED(type,name) \
-type** items = rconv_list_to_##name##_array(list, len); \
-if (*items == NULL) { \
-	*items = NULL; \
-} \
-rconv_list_free(list); \
-return items;
+#define RCONV_STEPMANIA_CLEAR_LIST_NAMED(type, name)        \
+	type** items = rconv_list_to_##name##_array(list, len); \
+	if (*items == NULL) {                                   \
+		*items = NULL;                                      \
+	}                                                       \
+	rconv_list_free(list);                                  \
+	return items;
 
-#define RCONV_STEPMANIA_CLEAR_LIST(type) \
-RCONV_STEPMANIA_CLEAR_LIST_NAMED(type,type)
+#define RCONV_STEPMANIA_CLEAR_LIST(type) RCONV_STEPMANIA_CLEAR_LIST_NAMED(type, type)
 
-#define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, idxFn, checkFn, freeFn) \
-type** rconv_stepmania_parse_## type ##_list_entries(char* data, int* len) \
-{ \
-	RconvList* list = rconv_list(); \
-	type* element = NULL; \
-	int elem_idx = 0; \
-	int state = 0; \
-	int idx = 0; \
-	int start = 0; \
-	int offset = 0; \
-	char* content = NULL; \
-	\
-	if (data == NULL) { \
-		len = 0; \
-		return NULL; \
-	} \
- 	\
-	while (true) { \
-		if (element == NULL) { \
-			element = (type*) calloc(1, sizeof(type)); \
-		} \
-		\
-		if (state == 2) { \
-			if (checkFn(element, elem_idx)) { \
-				rconv_list_add(list, element); \
-				elem_idx++; \
-			} else { \
-				freeFn(element); \
-			} \
-			element = (type*) calloc(1, sizeof(type)); \
-			state = 0; \
-			idx = 0; \
-		} \
-		\
-		size_t data_len = strlen(data); \
-		int start = -1; \
-		int last_not_whitespace = -1; \
-		\
-		while (offset < data_len) { \
-			const char c = *(data + offset); \
-			if (state == 0) { \
-				if (rconv_is_whitespace(c)) { \
-					offset++; \
-					continue; \
-				} \
-				start = offset; \
-				state = 1; \
-			} \
-			\
-			if (c == '=') { \
-				state = 1; \
-				break; \
-			\
-			} else if (c == ',') { \
-				state = 2; \
-				idx = 0; \
-				break; \
-			} \
-			\
-			if (start == -1) { \
-				start = offset; \
-			} \
-			offset++; \
-			if (!rconv_is_whitespace(c)) { \
-				last_not_whitespace = offset; \
-			} \
-		} \
-		\
-		if (start > -1) { \
-			content = rconv_substr(data, start, last_not_whitespace); \
-			offset++; \
-		} else { \
-			content = NULL; \
-		} \
-		\
-		if (state == 1) { \
-			state = 0; \
-		} \
- 		\
-		if (content == NULL) { \
-			break; \
-		} \
-		\
-		idxFn(element, idx, content); \
-		\
-		idx++; \
-	} \
-	\
-	type** items = rconv_list_to_## type ##_array(list, len); \
-	rconv_list_free(list); \
-	return items; \
-}
+#define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, newFn, idxFn, checkFn, freeFn) \
+	type** rconv_stepmania_parse_##type##_list_entries(char* data, int* len)    \
+	{                                                                           \
+		if (data == NULL) {                                                     \
+			*len = 0;                                                           \
+			return NULL;                                                        \
+		}                                                                       \
+                                                                                \
+		RconvList* list = rconv_list();                                         \
+		type* element = NULL;                                                   \
+		int elem_idx = 0;                                                       \
+		int state = 0;                                                          \
+		int idx = 0;                                                            \
+		int start = 0;                                                          \
+		int offset = 0;                                                         \
+		char* content = NULL;                                                   \
+		size_t data_len = strlen(data);                                         \
+                                                                                \
+		while (true) {                                                          \
+			if (element == NULL) {                                              \
+				element = newFn();                                              \
+			}                                                                   \
+                                                                                \
+			if (state == 2) {                                                   \
+				if (checkFn(element, elem_idx)) {                               \
+					rconv_list_add(list, element);                              \
+					elem_idx++;                                                 \
+				} else {                                                        \
+					freeFn(element);                                            \
+				}                                                               \
+				element = newFn();                                              \
+				state = 0;                                                      \
+				idx = 0;                                                        \
+			}                                                                   \
+                                                                                \
+			int start = -1;                                                     \
+			int last_not_whitespace = -1;                                       \
+                                                                                \
+			while (offset < data_len) {                                         \
+				const char c = *(data + offset);                                \
+				if (state == 0) {                                               \
+					if (rconv_is_whitespace(c)) {                               \
+						offset++;                                               \
+						continue;                                               \
+					}                                                           \
+					start = offset;                                             \
+					state = 1;                                                  \
+				}                                                               \
+                                                                                \
+				if (c == '=') {                                                 \
+					state = 1;                                                  \
+					break;                                                      \
+                                                                                \
+				} else if (c == ',') {                                          \
+					state = 2;                                                  \
+					break;                                                      \
+				}                                                               \
+                                                                                \
+				if (start == -1) {                                              \
+					start = offset;                                             \
+				}                                                               \
+				offset++;                                                       \
+				if (!rconv_is_whitespace(c)) {                                  \
+					last_not_whitespace = offset;                               \
+				}                                                               \
+			}                                                                   \
+                                                                                \
+			if (start > -1) {                                                   \
+				content = rconv_substr(data, start, last_not_whitespace);       \
+				offset++;                                                       \
+			} else {                                                            \
+				content = NULL;                                                 \
+			}                                                                   \
+                                                                                \
+			if (state == 1) {                                                   \
+				state = 0;                                                      \
+			}                                                                   \
+                                                                                \
+			if (content == NULL) {                                              \
+				break;                                                          \
+			}                                                                   \
+			idxFn(element, idx, content);                                       \
+                                                                                \
+			idx++;                                                              \
+		}                                                                       \
+                                                                                \
+		type** items = rconv_list_to_##type##_array(list, len);                 \
+		rconv_list_free(list);                                                  \
+		return items;                                                           \
+	}
 
 /*
  * Types
@@ -375,11 +373,20 @@ rconv_stepmania_parse(char* data);
 RconvFormattingParameters
 rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);
 
+RconvStepmaniaColor*
+rconv_stepmania_new_color(float red, float green, float blue, float alpha);
+
+RconvStepmaniaBpmChange*
+rconv_stepmania_new_bpm_change();
+
 void
 rconv_stepmania_free_bpm_change(RconvStepmaniaBpmChange* bpm_change);
 
 void
 rconv_stepmania_free_all_bpm_changes(int len, RconvStepmaniaBpmChange** bpm_changes);
+
+RconvStepmaniaStop*
+rconv_stepmania_new_stop();
 
 void
 rconv_stepmania_free_stop(RconvStepmaniaStop* stop);
@@ -387,11 +394,17 @@ rconv_stepmania_free_stop(RconvStepmaniaStop* stop);
 void
 rconv_stepmania_free_all_stops(int len, RconvStepmaniaStop** stops);
 
+RconvStepmaniaDelay*
+rconv_stepmania_new_delay();
+
 void
 rconv_stepmania_free_delay(RconvStepmaniaDelay* delay);
 
 void
 rconv_stepmania_free_all_delays(int len, RconvStepmaniaDelay** delays);
+
+RconvStepmaniaTimeSignature*
+rconv_stepmania_new_time_signature();
 
 void
 rconv_stepmania_free_time_signature(RconvStepmaniaTimeSignature* time_signature);
@@ -399,11 +412,17 @@ rconv_stepmania_free_time_signature(RconvStepmaniaTimeSignature* time_signature)
 void
 rconv_stepmania_free_all_time_signatures(int len, RconvStepmaniaTimeSignature** time_signatures);
 
+RconvStepmaniaInstrumentTrack*
+rconv_stepmania_new_instrument_track();
+
 void
 rconv_stepmania_free_instrument_track(RconvStepmaniaInstrumentTrack* instrument_track);
 
 void
 rconv_stepmania_free_all_instrument_tracks(int len, RconvStepmaniaInstrumentTrack** instrument_tracks);
+
+RconvStepmaniaTickCount*
+rconv_stepmania_new_tick_count();
 
 void
 rconv_stepmania_free_tick_count(RconvStepmaniaTickCount* tick_count);
@@ -411,11 +430,17 @@ rconv_stepmania_free_tick_count(RconvStepmaniaTickCount* tick_count);
 void
 rconv_stepmania_free_all_tick_counts(int len, RconvStepmaniaTickCount** tick_counts);
 
+RconvStepmaniaBackgroundChange*
+rconv_stepmania_new_background_change();
+
 void
 rconv_stepmania_free_background_change(RconvStepmaniaBackgroundChange* background_change);
 
 void
 rconv_stepmania_free_all_background_changes(int len, RconvStepmaniaBackgroundChange** background_changes);
+
+RconvStepmaniaModifier*
+rconv_stepmania_new_modifier();
 
 void
 rconv_stepmania_free_modifier(RconvStepmaniaModifier* modifier);
@@ -423,11 +448,17 @@ rconv_stepmania_free_modifier(RconvStepmaniaModifier* modifier);
 void
 rconv_stepmania_free_all_modifiers(int len, RconvStepmaniaModifier** modifiers);
 
+RconvStepmaniaAttack*
+rconv_stepmania_new_attack();
+
 void
 rconv_stepmania_free_attack(RconvStepmaniaAttack* attack);
 
 void
 rconv_stepmania_free_all_attacks(int len, RconvStepmaniaAttack** attacks);
+
+RconvStepmaniaTimedAttack*
+rconv_stepmania_new_timed_attack();
 
 void
 rconv_stepmania_free_timed_attack(RconvStepmaniaTimedAttack* timed_attack);
@@ -435,11 +466,17 @@ rconv_stepmania_free_timed_attack(RconvStepmaniaTimedAttack* timed_attack);
 void
 rconv_stepmania_free_all_timed_attacks(int len, RconvStepmaniaTimedAttack** timed_attacks);
 
+RconvStepmaniaComboChange*
+rconv_stepmania_new_combo_change();
+
 void
 rconv_stepmania_free_combo_change(RconvStepmaniaComboChange* combo_change);
 
 void
 rconv_stepmania_free_all_combo_changes(int len, RconvStepmaniaComboChange** combo_changes);
+
+RconvStepmaniaSpeedChange*
+rconv_stepmania_new_speed_change();
 
 void
 rconv_stepmania_free_speed_change(RconvStepmaniaSpeedChange* speed_change);
@@ -447,11 +484,17 @@ rconv_stepmania_free_speed_change(RconvStepmaniaSpeedChange* speed_change);
 void
 rconv_stepmania_free_all_speed_changes(int len, RconvStepmaniaSpeedChange** speed_changes);
 
+RconvStepmaniaScrollSpeedChange*
+rconv_stepmania_new_scroll_speed_change();
+
 void
 rconv_stepmania_free_scroll_speed_change(RconvStepmaniaScrollSpeedChange* scroll_speed_change);
 
 void
 rconv_stepmania_free_all_scroll_speed_changes(int len, RconvStepmaniaScrollSpeedChange** scroll_speed_changes);
+
+RconvStepmaniaFakeSection*
+rconv_stepmania_new_fake_section();
 
 void
 rconv_stepmania_free_fake_section(RconvStepmaniaFakeSection* fake_section);
@@ -459,11 +502,17 @@ rconv_stepmania_free_fake_section(RconvStepmaniaFakeSection* fake_section);
 void
 rconv_stepmania_free_all_fake_sections(int len, RconvStepmaniaFakeSection** fake_sections);
 
+RconvStepmaniaLabel*
+rconv_stepmania_new_label();
+
 void
 rconv_stepmania_free_label(RconvStepmaniaLabel* label);
 
 void
 rconv_stepmania_free_all_labels(int len, RconvStepmaniaLabel** labels);
+
+RconvStepmaniaNote*
+rconv_stepmania_new_note();
 
 void
 rconv_stepmania_free_note(RconvStepmaniaNote* note);
@@ -471,17 +520,26 @@ rconv_stepmania_free_note(RconvStepmaniaNote* note);
 void
 rconv_stepmania_free_all_notes(int len, RconvStepmaniaNote** notes);
 
+RconvStepmaniaBeat*
+rconv_stepmania_new_beat();
+
 void
 rconv_stepmania_free_beat(RconvStepmaniaBeat* beat);
 
 void
 rconv_stepmania_free_all_beats(int len, RconvStepmaniaBeat** beats);
 
+RconvStepmaniaNoteData*
+rconv_stepmania_new_note_data();
+
 void
 rconv_stepmania_free_note_data(RconvStepmaniaNoteData* note_data);
 
 void
 rconv_stepmania_free_all_note_data(int len, RconvStepmaniaNoteData** note_data);
+
+RconvStepmaniaChartFile*
+rconv_stepmania_new_chart_file();
 
 void
 rconv_stepmania_free_chart_file(RconvStepmaniaChartFile* chart_file);

@@ -21,6 +21,9 @@ rconv_substr(const char* str, size_t start, size_t end)
 	// len+1 for the null-byte at the end
 	rsize_t size = (len + 1) * sizeof(char);
 	char* out = (char*) malloc(size);
+	if (out == NULL) {
+		return NULL;
+	}
 	strncpy_s(out, size, str + start, len);
 	out[len] = '\0';
 
@@ -37,6 +40,26 @@ bool
 rconv_is_number(char c)
 {
 	return c >= 48 && c <= 57;
+}
+
+char*
+rconv_repeat(char* str, int amount)
+{
+	size_t str_len = strlen(str);
+	int size = str_len * amount + 1;
+	char* out = calloc(size, sizeof(char));
+
+	for (size_t i = 0; i < amount; i++) {
+		void* pos = out + (i * str_len);
+		if (pos == NULL) {
+			free(out);
+			out = NULL;
+			break;
+		}
+		memcpy(pos, str, str_len);
+	}
+
+	return out;
 }
 
 char*

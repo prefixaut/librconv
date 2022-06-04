@@ -64,5 +64,8 @@ rconv_is_whitespace(char str);
 bool
 rconv_is_number(char str);
 
+char*
+rconv_repeat(char* str, int amount);
+
 void
 rconv_free_all_strings(int len, char** strings);

@@ -19,12 +19,12 @@ rconv_substr(const char* str, size_t start, size_t end)
 		return NULL;
 	}
 	// len+1 for the null-byte at the end
-	rsize_t size = (len + 1) * sizeof(char);
+	size_t size = (len + 1) * sizeof(char);
 	char* out = (char*) malloc(size);
 	if (out == NULL) {
 		return NULL;
 	}
-	strncpy_s(out, size, str + start, len);
+	strncpy(out, str + start, len);
 	out[len] = '\0';
 
 	return out;

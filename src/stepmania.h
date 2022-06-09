@@ -34,6 +34,7 @@
 #define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, newFn, idxFn, checkFn, freeFn) \
 	type** rconv_stepmania_parse_##type##_list_entries(char* data, int* len)    \
 	{                                                                           \
+		printf("parsing entries for %s!\n", #type);                             \
 		if (data == NULL) {                                                     \
 			*len = 0;                                                           \
 			return NULL;                                                        \
@@ -110,13 +111,14 @@
 			}                                                                   \
                                                                                 \
 			if (content == NULL) {                                              \
+				printf("break cuz content null in %s!\n", #type);               \
 				break;                                                          \
 			}                                                                   \
 			idxFn(element, idx, content);                                       \
                                                                                 \
 			idx++;                                                              \
 		}                                                                       \
-                                                                                \
+		printf("type to list end: list(%d)\n", list->size);                     \
 		type** items = rconv_list_to_##type##_array(list, len);                 \
 		rconv_list_free(list);                                                  \
 		return items;                                                           \
@@ -368,7 +370,13 @@ typedef struct {
  * Functions
  */
 RconvStepmaniaChartFile*
-rconv_stepmania_parse(char* data);
+rconv_stepmania_parse(FILE* fp);
+
+RconvStepmaniaChartFile*
+rconv_stepmania_parse_from_string(char* data);
+
+RconvStepmaniaChartFile*
+rconv_stepmania_parse_from_file(char* file_path);
 
 RconvFormattingParameters
 rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart);

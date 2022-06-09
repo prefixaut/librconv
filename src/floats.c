@@ -41,17 +41,17 @@ rconv_float_to_string(RconvFloat* value)
 
 	if (value->fraction_offset <= 0) {
 		if (negative) {
-			format = "-%lld.%lld";
+			format = "-%lu.%lu";
 
 		} else {
-			format = "%lld.%lld";
+			format = "%lu.%lu";
 		}
 	} else {
 		char* pre_format = NULL;
 		if (negative) {
-			pre_format = "-%%lld.%s%%lld";
+			pre_format = "-%%lu.%s%%lu";
 		} else {
-			pre_format = "%%lld.%s%%lld";
+			pre_format = "%%lu.%s%%lu";
 		}
 		filler = rconv_repeat("0", value->fraction_offset);
 		int format_len = 1 + snprintf(NULL, 0, pre_format, filler);
@@ -282,12 +282,12 @@ rconv_float_new_from_float(float value)
 char*
 rconv_float_long_to_str(size_t value)
 {
-	int len = 1 + snprintf(NULL, 0, "%lld", value);
+	int len = 1 + snprintf(NULL, 0, "%lu", value);
 	char* str = malloc(sizeof(char) * len);
 	if (str == NULL) {
 		return NULL;
 	}
-	snprintf(str, len, "%lld", value);
+	snprintf(str, len, "%lu", value);
 	return str;
 }
 

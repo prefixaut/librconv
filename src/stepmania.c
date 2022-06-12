@@ -56,40 +56,47 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 	*content = NULL;
 	*tag = NULL;
 
-	while (feof(fp) != 0) {
+	while (feof(fp) == 0) {
 		char c = fgetc(fp);
 
 		if (state == 0) {
 			if (c == '#') {
 				state = 1;
-				start = ftell(fp) + 1;
+				start = ftell(fp);
 			}
-			fseek(fp, 1, SEEK_CUR);
 			continue;
 		}
 
 		if (state == 1) {
 			if (c == ':') {
-				int end = ftell(fp);
+				int end = ftell(fp) - 1;
+				int len = end - start;
+
 				fseek(fp, start, SEEK_SET);
-				fread(*tag, end - start + 1, 1, fp);
+				*tag = malloc((len + 1) * sizeof(char));
+				fread(*tag, sizeof(char), len, fp);
+				(*tag)[len] = '\0';
 				fseek(fp, end, SEEK_SET);
+
 				state = 2;
 				start = end + 1;
 			}
-			fseek(fp, 1, SEEK_CUR);
 			continue;
 		}
 
 		if (state == 2) {
 			if (c == ';') {
-				int end = ftell(fp);
+				int end = ftell(fp) - 1;
+				int len = end - start;
+
 				fseek(fp, start, SEEK_SET);
-				fread(*content, end - start + 1, 1, fp);
+				*content = malloc((len + 1) * sizeof(char));
+				fread(*content, sizeof(char), len, fp);
+				(*content)[len] = '\0';
 				fseek(fp, end + 1, SEEK_SET);
+
 				break;
 			}
-			fseek(fp, 1, SEEK_CUR);
 		}
 	}
 }
@@ -1670,13 +1677,33 @@ rconv_stepmania_parse(FILE* fp)
 RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_string(char* data)
 {
-	if (data == NULL) {
-		return NULL;
-	}
-	size_t size = strlen(data);
-	FILE* fp = open_memstream(&data, &size);
+	// if (data == NULL) {
+	// 	return NULL;
+	// }
 
-	return rconv_stepmania_parse(fp);
+	// size_t size = strlen(data);
+	// FILE* fp;
+	// RconvStepmaniaChartFile* out = NULL;
+
+	// #ifdef __linux__
+	// 	fp = = open_memstream(&data, &size);
+	// 	out = rconv_stepmania_parse(fp);
+
+	// 	fclose(fp);
+	// #elif _WIN32
+	// 	fmem* buffer = malloc(sizeof(fmem));
+	// 	fmem_init(buffer);
+	// 	fmem_mem(buffer, *data, size);
+
+	// 	fp = fmem_open(buffer, "r");
+	// 	out = rconv_stepmania_parse(fp);
+
+	// 	fclose(fp);
+	// 	fmem_term(buffer);
+	// #endif
+
+	// return out;
+	return NULL;
 }
 
 RconvStepmaniaChartFile*
@@ -1685,9 +1712,14 @@ rconv_stepmania_parse_from_file(char* file_path)
 	if (file_path == NULL) {
 		return NULL;
 	}
+
 	FILE* fp = fopen(file_path, "r");
 	if (fp == NULL) {
 		return NULL;
 	}
-	return rconv_stepmania_parse(fp);
+
+	RconvStepmaniaChartFile* out = rconv_stepmania_parse(fp);
+	fclose(fp);
+
+	return out;
 }

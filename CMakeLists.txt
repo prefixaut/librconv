@@ -5,6 +5,11 @@ cmake_minimum_required (VERSION 3.8)
 
 project ("librconv" VERSION 0.1)
 
+# Set C-Version to 17
+if(NOT "${CMAKE_CXX_STANDARD}")
+  set(CMAKE_CXX_STANDARD 17)
+endif()
+
 # Add source to this project's executable.
 file(GLOB SRC_FILES "src/*.c" "src/**/*.c")
 add_executable(librconv ${SRC_FILES})
@@ -20,6 +25,7 @@ target_include_directories(librconv PUBLIC
   "src"
   "lib/utf8"
 )
+# add_library(fmem "lib/fmem")
 
 if(__STD_LIB_EXT1__ EQUAL 1)
   target_compile_definitions(librconv PUBLIC __STDC_WANT_LIB_EXT1__=1)

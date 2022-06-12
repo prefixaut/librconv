@@ -1,3 +1,9 @@
 [submodule "lib/utf8"]
 	path = lib/utf8
 	url = git@github.com:sheredom/utf8.h.git
+[submodule "lib/fmem"]
+	path = lib/fmem
+	url = git@github.com:Snaipe/fmem.git
+[submodule "lib/Criterion"]
+	path = lib/Criterion
+	url = git@github.com:Snaipe/Criterion.git

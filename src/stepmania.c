@@ -52,7 +52,8 @@ void
 rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 {
 	int state = 0;
-	int start = 0;
+	int start = -1;
+	int last_not_whitespace = -1;
 	*content = NULL;
 	*tag = NULL;
 
@@ -62,15 +63,14 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 		if (state == 0) {
 			if (c == '#') {
 				state = 1;
-				start = ftell(fp);
 			}
 			continue;
 		}
 
 		if (state == 1) {
 			if (c == ':') {
-				int end = ftell(fp) - 1;
-				int len = end - start;
+				int end = ftell(fp);
+				int len = last_not_whitespace - start;
 
 				fseek(fp, start, SEEK_SET);
 				*tag = malloc((len + 1) * sizeof(char));
@@ -79,23 +79,39 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 				fseek(fp, end, SEEK_SET);
 
 				state = 2;
-				start = end + 1;
+				start = -1;
+				last_not_whitespace = -1;
+
+			} else if (!rconv_is_whitespace(c)) {
+				if (start == -1) {
+					start = ftell(fp) - 1;
+				}
+				last_not_whitespace = ftell(fp);
 			}
+
 			continue;
 		}
 
 		if (state == 2) {
 			if (c == ';') {
-				int end = ftell(fp) - 1;
-				int len = end - start;
+				int end = ftell(fp);
+				int len = last_not_whitespace - start;
 
+				// FIXME: In the attacks, the allocated space is 4 chars too long
+				// Other tags work just fine (???)
 				fseek(fp, start, SEEK_SET);
 				*content = malloc((len + 1) * sizeof(char));
 				fread(*content, sizeof(char), len, fp);
 				(*content)[len] = '\0';
-				fseek(fp, end + 1, SEEK_SET);
+				fseek(fp, end, SEEK_SET);
 
 				break;
+
+			} else if (!rconv_is_whitespace(c)) {
+				if (start == -1) {
+					start = ftell(fp) - 1;
+				}
+				last_not_whitespace = ftell(fp);
 			}
 		}
 	}
@@ -212,6 +228,13 @@ rconv_stepmania_free_all_bpm_changes(int len, RconvStepmaniaBpmChange** bpm_chan
 	free(bpm_changes);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaBpmChange,
+	rconv_stepmania_new_bpm_change,
+	rconv_stepmania_handle_bpm_change_entry,
+	rconv_stepmania_verify_bpm_change_entry,
+	rconv_stepmania_free_bpm_change)
+
 /*
  * ==================== STOPS ====================
  */
@@ -272,6 +295,13 @@ rconv_stepmania_free_all_stops(int len, RconvStepmaniaStop** stops)
 	free(stops);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaStop,
+	rconv_stepmania_new_stop,
+	rconv_stepmania_handle_stop_entry,
+	rconv_stepmania_verify_stop_entry,
+	rconv_stepmania_free_stop)
+
 /*
  * ==================== DELAYS ====================
  */
@@ -331,6 +361,13 @@ rconv_stepmania_free_all_delays(int len, RconvStepmaniaDelay** delays)
 	}
 	free(delays);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaDelay,
+	rconv_stepmania_new_delay,
+	rconv_stepmania_handle_delay_entry,
+	rconv_stepmania_verify_delay_entry,
+	rconv_stepmania_free_delay)
 
 /*
  * ==================== TIME SIGNATURES ====================
@@ -393,6 +430,13 @@ rconv_stepmania_free_all_time_signatures(int len, RconvStepmaniaTimeSignature** 
 	free(time_signatures);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaTimeSignature,
+	rconv_stepmania_new_time_signature,
+	rconv_stepmania_handle_time_signature_entry,
+	rconv_stepmania_verify_time_signature_entry,
+	rconv_stepmania_free_time_signature)
+
 /*
  * ==================== INSTRUMENT TRACKS ====================
  */
@@ -401,6 +445,28 @@ RconvStepmaniaInstrumentTrack*
 rconv_stepmania_new_instrument_track()
 {
 	return (RconvStepmaniaInstrumentTrack*) calloc(1, sizeof(RconvStepmaniaInstrumentTrack));
+}
+
+bool
+rconv_stepmania_verify_instrument_track_entry(RconvStepmaniaInstrumentTrack* elem, int idx)
+{
+	if (elem == NULL) {
+		return false;
+	}
+
+	return elem->instrument != NULL && strlen(elem->instrument) > 0 && elem->file != NULL && strlen(elem->file) > 0;
+}
+
+void
+rconv_stepmania_handle_instrument_track_entry(RconvStepmaniaInstrumentTrack* elem, int idx, char* content)
+{
+	if (idx == 0) {
+		elem->instrument = content;
+	} else if (idx == 1) {
+		elem->file = content;
+	} else {
+		free(content);
+	}
 }
 
 void
@@ -424,6 +490,13 @@ rconv_stepmania_free_all_instrument_tracks(int len, RconvStepmaniaInstrumentTrac
 	}
 	free(instrument_tracks);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaInstrumentTrack,
+	rconv_stepmania_new_instrument_track,
+	rconv_stepmania_handle_instrument_track_entry,
+	rconv_stepmania_verify_instrument_track_entry,
+	rconv_stepmania_free_instrument_track)
 
 /*
  * ==================== TICK COUNTS ====================
@@ -483,6 +556,13 @@ rconv_stepmania_free_all_tick_counts(int len, RconvStepmaniaTickCount** tick_cou
 	}
 	free(tick_counts);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaTickCount,
+	rconv_stepmania_new_tick_count,
+	rconv_stepmania_handle_tick_count_entry,
+	rconv_stepmania_verify_tick_count_entry,
+	rconv_stepmania_free_tick_count)
 
 /*
  * ==================== BACKGROUND CHANGES ====================
@@ -586,6 +666,13 @@ rconv_stepmania_free_all_background_changes(int len, RconvStepmaniaBackgroundCha
 	free(background_changes);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaBackgroundChange,
+	rconv_stepmania_new_background_change,
+	rconv_stepmania_handle_background_change_entry,
+	rconv_stepmania_verify_background_change_entry,
+	rconv_stepmania_free_background_change)
+
 /*
  * ==================== MODIFIERS ====================
  */
@@ -596,11 +683,16 @@ rconv_stepmania_new_modifier()
 	return (RconvStepmaniaModifier*) calloc(1, sizeof(RconvStepmaniaModifier));
 }
 
-RconvStepmaniaModifier**
-rconv_stepmania_parse_modifiers(char* data, int* len)
+bool
+rconv_stepmania_verify_modifier_entry(RconvStepmaniaModifier* elem, int idx)
 {
-	// TOOD: Implement me
-	return NULL;
+	return true;
+}
+
+void
+rconv_stepmania_handle_modifier_entry(RconvStepmaniaModifier* elem, int idx, char* content)
+{
+	// TODO: Implement me
 }
 
 void
@@ -625,6 +717,13 @@ rconv_stepmania_free_all_modifiers(int len, RconvStepmaniaModifier** modifiers)
 	}
 	free(modifiers);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaModifier,
+	rconv_stepmania_new_modifier,
+	rconv_stepmania_handle_modifier_entry,
+	rconv_stepmania_verify_modifier_entry,
+	rconv_stepmania_free_modifier)
 
 /*
  * ==================== ATTACKS ====================
@@ -682,26 +781,29 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 	// 0 Beginning
 	// 1 Sub-Tag
 	// 2 Content
-	// 4 clean
 	int state = 0;
-	int start = 0;
 	int offset = 0;
 	char* content = NULL;
 	size_t data_len = strlen(data);
+	bool reached_end = false;
 
 	while (true) {
 		if (state == 4) {
 			rconv_list_add(list, element);
 			element = rconv_stepmania_new_timed_attack();
 			element_idx++;
-			state = 0;
 			is_end = false;
+			state = 0;
+		}
+
+		if (reached_end) {
+			break;
 		}
 
 		int start = -1;
 		int last_not_whitespace = -1;
 
-		while (offset < data_len) {
+		while ((offset < data_len) && !reached_end) {
 			const char c = *(data + offset);
 			if (state == 0) {
 				if (rconv_is_whitespace(c)) {
@@ -718,6 +820,10 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 
 			} else if (c == ':') {
 				state = 3;
+				break;
+			} else if (c == ';') {
+				state = 3;
+				reached_end = true;
 				break;
 			}
 
@@ -737,14 +843,14 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 			content = NULL;
 		}
 
-		if (state == 3) {
+		if (state == 2) {
 			bool valid = false;
 
 			if (content != NULL) {
 				utf8lwr(content);
-				valid = idx % 3 == 0 && utf8cmp(content, "time") == 0
-						|| idx % 3 == 1 && ((is_end = utf8cmp(content, "end") == 0) || utf8cmp(content, "len") == 0)
-						|| idx % 3 == 2 && utf8cmp(content, "mods");
+				valid = (idx % 3 == 0 && utf8cmp(content, "time") == 0)
+						|| (idx % 3 == 1 && ((is_end = utf8cmp(content, "end") == 0) || utf8cmp(content, "len") == 0))
+						|| (idx % 3 == 2 && utf8cmp(content, "mods") == 0);
 			}
 
 			if (!valid) {
@@ -756,33 +862,39 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 				return NULL;
 			}
 
-			free(content);
-			content = NULL;
 			state = 2;
 
-		} else if (state == 2) {
+		} else if (state == 3) {
 			if (idx % 3 == 0) {
 				element->time = rconv_float_new_from_string(content);
-				free(content);
-
-				if (idx > 0) {
-					state = 4;
-				} else {
-					state = 2;
-				}
+				state = 0;
 			} else if (idx % 3 == 1) {
 				RconvFloat* tmp = rconv_float_new_from_string(content);
+
 				if (is_end) {
-
+					element->length = rconv_float_subtract(tmp, element->time);
+					free(tmp);
+				} else {
+					element->length = tmp;
 				}
-				state = 2;
-			} else {
 
+				state = 0;
+			} else {
+				element->mods = rconv_stepmania_parse_RconvStepmaniaModifier_list_entries(content, &element->mods_len);
+				state = 4;
 			}
+
+			
+			idx++;
 		}
+
+		free(content);
+		content = NULL;
 	}
 
-	return NULL;
+	RconvStepmaniaTimedAttack** out = rconv_list_to_RconvStepmaniaTimedAttack_array(list, len);
+	rconv_list_free(list);
+	return out;
 }
 
 void
@@ -873,6 +985,13 @@ rconv_stepmania_free_all_combo_changes(int len, RconvStepmaniaComboChange** comb
 	free(combo_changes);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaComboChange,
+	rconv_stepmania_new_combo_change,
+	rconv_stepmania_handle_combo_change_entry,
+	rconv_stepmania_verify_combo_change_entry,
+	rconv_stepmania_free_combo_change)
+
 /*
  * ==================== SPEED CHANGES ====================
  */
@@ -938,6 +1057,13 @@ rconv_stepmania_free_all_speed_changes(int len, RconvStepmaniaSpeedChange** spee
 	free(speed_changes);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaSpeedChange,
+	rconv_stepmania_new_speed_change,
+	rconv_stepmania_handle_speed_change_entry,
+	rconv_stepmania_verify_speed_change_entry,
+	rconv_stepmania_free_speed_change)
+
 /*
  * ==================== SCROLL SPEED CHANGES ====================
  */
@@ -997,6 +1123,13 @@ rconv_stepmania_free_all_scroll_speed_changes(int len, RconvStepmaniaScrollSpeed
 	}
 	free(scroll_speed_changes);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaScrollSpeedChange,
+	rconv_stepmania_new_scroll_speed_change,
+	rconv_stepmania_handle_scroll_speed_change_entry,
+	rconv_stepmania_verify_scroll_speed_change_entry,
+	rconv_stepmania_free_scroll_speed_change)
 
 /*
  * ==================== FAKE SECTIONS ====================
@@ -1058,6 +1191,13 @@ rconv_stepmania_free_all_fake_sections(int len, RconvStepmaniaFakeSection** fake
 	free(fake_sections);
 }
 
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaFakeSection,
+	rconv_stepmania_new_fake_section,
+	rconv_stepmania_handle_fake_section_entry,
+	rconv_stepmania_verify_fake_section_entry,
+	rconv_stepmania_free_fake_section)
+
 /*
  * ==================== LABELS ====================
  */
@@ -1116,6 +1256,13 @@ rconv_stepmania_free_all_labels(int len, RconvStepmaniaLabel** labels)
 	}
 	free(labels);
 }
+
+RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+	RconvStepmaniaLabel,
+	rconv_stepmania_new_label,
+	rconv_stepmania_handle_label_entry,
+	rconv_stepmania_verify_label_entry,
+	rconv_stepmania_free_label)
 
 /*
  * ==================== NOTES ====================
@@ -1285,73 +1432,6 @@ rconv_stepmania_free_chart_file(RconvStepmaniaChartFile* chart)
 
 	free(chart);
 }
-
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaBpmChange,
-	rconv_stepmania_new_bpm_change,
-	rconv_stepmania_handle_bpm_change_entry,
-	rconv_stepmania_verify_bpm_change_entry,
-	rconv_stepmania_free_bpm_change)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaStop,
-	rconv_stepmania_new_stop,
-	rconv_stepmania_handle_stop_entry,
-	rconv_stepmania_verify_stop_entry,
-	rconv_stepmania_free_stop)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaDelay,
-	rconv_stepmania_new_delay,
-	rconv_stepmania_handle_delay_entry,
-	rconv_stepmania_verify_delay_entry,
-	rconv_stepmania_free_delay)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaTimeSignature,
-	rconv_stepmania_new_time_signature,
-	rconv_stepmania_handle_time_signature_entry,
-	rconv_stepmania_verify_time_signature_entry,
-	rconv_stepmania_free_time_signature)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaTickCount,
-	rconv_stepmania_new_tick_count,
-	rconv_stepmania_handle_tick_count_entry,
-	rconv_stepmania_verify_tick_count_entry,
-	rconv_stepmania_free_tick_count)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaBackgroundChange,
-	rconv_stepmania_new_background_change,
-	rconv_stepmania_handle_background_change_entry,
-	rconv_stepmania_verify_background_change_entry,
-	rconv_stepmania_free_background_change)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaComboChange,
-	rconv_stepmania_new_combo_change,
-	rconv_stepmania_handle_combo_change_entry,
-	rconv_stepmania_verify_combo_change_entry,
-	rconv_stepmania_free_combo_change)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaSpeedChange,
-	rconv_stepmania_new_speed_change,
-	rconv_stepmania_handle_speed_change_entry,
-	rconv_stepmania_verify_speed_change_entry,
-	rconv_stepmania_free_speed_change)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaScrollSpeedChange,
-	rconv_stepmania_new_scroll_speed_change,
-	rconv_stepmania_handle_scroll_speed_change_entry,
-	rconv_stepmania_verify_scroll_speed_change_entry,
-	rconv_stepmania_free_scroll_speed_change)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaFakeSection,
-	rconv_stepmania_new_fake_section,
-	rconv_stepmania_handle_fake_section_entry,
-	rconv_stepmania_verify_fake_section_entry,
-	rconv_stepmania_free_fake_section)
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
-	RconvStepmaniaLabel,
-	rconv_stepmania_new_label,
-	rconv_stepmania_handle_label_entry,
-	rconv_stepmania_verify_label_entry,
-	rconv_stepmania_free_label)
 
 void
 rconv_stepmania_parse_chart_type(char* data, RconvStepmaniaChartType* type)
@@ -1635,6 +1715,10 @@ rconv_stepmania_parse(FILE* fp)
 		} else if (utf8cmp(tag, "timesignatures") == 0) {
 			rconv_stepmania_free_all_time_signatures(chart->time_signatures_len, chart->time_signatures);
 			chart->time_signatures = rconv_stepmania_parse_RconvStepmaniaTimeSignature_list_entries(content, &chart->time_signatures_len);
+		} else if (utf8cmp(tag, "instrumenttracks") == 0) {
+			rconv_stepmania_free_all_instrument_tracks(chart->instrument_tracks_len, chart->instrument_tracks);
+			chart->instrument_tracks =
+				rconv_stepmania_parse_RconvStepmaniaInstrumentTrack_list_entries(content, &chart->instrument_tracks_len);
 		} else if (utf8cmp(tag, "attacks") == 0) {
 			rconv_stepmania_free_all_timed_attacks(chart->attacks_len, chart->attacks);
 			chart->attacks = rconv_stepmania_parse_timed_attacks(content, &chart->attacks_len);

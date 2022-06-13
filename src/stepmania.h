@@ -35,7 +35,6 @@
 #define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, newFn, idxFn, checkFn, freeFn) \
 	type** rconv_stepmania_parse_##type##_list_entries(char* data, int* len)    \
 	{                                                                           \
-		printf("parsing entries for %s!\n", #type);                             \
 		if (data == NULL) {                                                     \
 			*len = 0;                                                           \
 			return NULL;                                                        \
@@ -111,15 +110,22 @@
 				state = 0;                                                      \
 			}                                                                   \
                                                                                 \
-			if (content == NULL) {                                              \
-				printf("break cuz content null in %s!\n", #type);               \
-				break;                                                          \
-			}                                                                   \
 			idxFn(element, idx, content);                                       \
                                                                                 \
 			idx++;                                                              \
+                                                                                \
+			if (offset >= data_len) {                                           \
+				break;                                                          \
+			}                                                                   \
 		}                                                                       \
-		printf("type to list end: list(%d)\n", list->size);                     \
+                                                                                \
+		if (checkFn(element, elem_idx)) {                                       \
+			rconv_list_add(list, element);                                      \
+			elem_idx++;                                                         \
+		} else {                                                                \
+			freeFn(element);                                                    \
+		}                                                                       \
+                                                                                \
 		type** items = rconv_list_to_##type##_array(list, len);                 \
 		rconv_list_free(list);                                                  \
 		return items;                                                           \

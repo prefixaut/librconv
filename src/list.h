@@ -12,8 +12,8 @@
 			*array_length = 0;                                              \
 			return NULL;                                                    \
 		}                                                                   \
-																			\
-		type** target = (type**) malloc(list->size * sizeof(type*));		\
+                                                                            \
+		type** target = (type**) malloc(list->size * sizeof(type*));        \
 		if (target == NULL) {                                               \
 			*array_length = 0;                                              \
 			return NULL;                                                    \

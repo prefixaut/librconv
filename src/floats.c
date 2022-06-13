@@ -3,13 +3,7 @@
 RconvFloat*
 rconv_float_new()
 {
-	RconvFloat* ptr = (RconvFloat*) malloc(sizeof(RconvFloat));
-	if (ptr == NULL) {
-		return NULL;
-	}
-	ptr->integer = 0;
-	ptr->fraction = 0;
-
+	RconvFloat* ptr = (RconvFloat*) calloc(1, sizeof(RconvFloat));
 	return ptr;
 }
 
@@ -98,6 +92,9 @@ rconv_float_is_negative(RconvFloat* value)
 int
 rconv_float_set_from_string(RconvFloat* result, const char* str)
 {
+	if (str == NULL) {
+		return RCONV_FLOAT_ERR_ILLEGAL_CHAR;
+	}
 	size_t max = strlen(str);
 	int offset = 0;
 	int last_not_zero = 0;

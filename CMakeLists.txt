@@ -27,6 +27,12 @@ target_include_directories(librconv PUBLIC
 )
 # add_library(fmem "lib/fmem")
 
+# Disable windows warnings to use secure (_s) functions instead
+if(MSVC)
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+# In case we do use the _s functions, enable them
 if(__STD_LIB_EXT1__ EQUAL 1)
   target_compile_definitions(librconv PUBLIC __STDC_WANT_LIB_EXT1__=1)
 endif()

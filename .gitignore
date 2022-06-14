@@ -20,6 +20,7 @@ librconv.vcxproj.*
 
 # Temporary and Testing files
 /resources
+*.rdbg
 
 # Logs
 *.log

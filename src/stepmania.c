@@ -228,7 +228,7 @@ rconv_stepmania_free_all_bpm_changes(int len, RconvStepmaniaBpmChange** bpm_chan
 	free(bpm_changes);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaBpmChange,
 	rconv_stepmania_new_bpm_change,
 	rconv_stepmania_handle_bpm_change_entry,
@@ -295,7 +295,7 @@ rconv_stepmania_free_all_stops(int len, RconvStepmaniaStop** stops)
 	free(stops);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaStop,
 	rconv_stepmania_new_stop,
 	rconv_stepmania_handle_stop_entry,
@@ -362,7 +362,7 @@ rconv_stepmania_free_all_delays(int len, RconvStepmaniaDelay** delays)
 	free(delays);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaDelay,
 	rconv_stepmania_new_delay,
 	rconv_stepmania_handle_delay_entry,
@@ -430,7 +430,7 @@ rconv_stepmania_free_all_time_signatures(int len, RconvStepmaniaTimeSignature** 
 	free(time_signatures);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaTimeSignature,
 	rconv_stepmania_new_time_signature,
 	rconv_stepmania_handle_time_signature_entry,
@@ -491,7 +491,7 @@ rconv_stepmania_free_all_instrument_tracks(int len, RconvStepmaniaInstrumentTrac
 	free(instrument_tracks);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaInstrumentTrack,
 	rconv_stepmania_new_instrument_track,
 	rconv_stepmania_handle_instrument_track_entry,
@@ -557,7 +557,7 @@ rconv_stepmania_free_all_tick_counts(int len, RconvStepmaniaTickCount** tick_cou
 	free(tick_counts);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaTickCount,
 	rconv_stepmania_new_tick_count,
 	rconv_stepmania_handle_tick_count_entry,
@@ -666,7 +666,7 @@ rconv_stepmania_free_all_background_changes(int len, RconvStepmaniaBackgroundCha
 	free(background_changes);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaBackgroundChange,
 	rconv_stepmania_new_background_change,
 	rconv_stepmania_handle_background_change_entry,
@@ -680,19 +680,72 @@ RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
 RconvStepmaniaModifier*
 rconv_stepmania_new_modifier()
 {
-	return (RconvStepmaniaModifier*) calloc(1, sizeof(RconvStepmaniaModifier));
+	RconvStepmaniaModifier* out = (RconvStepmaniaModifier*) calloc(1, sizeof(RconvStepmaniaModifier));
+	out->approach_rate = 1;
+	out->magnitude = rconv_float_new_from_number(100, 0, 0);
+	out->is_percent = true;
 }
 
 bool
 rconv_stepmania_verify_modifier_entry(RconvStepmaniaModifier* elem, int idx)
 {
-	return true;
+	if (elem == NULL) {
+		return false;
+	}
+
+	return elem->name != NULL && strlen(elem->name) > 0
+		&& elem->player != NULL && strlen(elem->player) > 0
+		&& elem->approach_rate > 0
+		&& elem->magnitude != NULL;
 }
 
 void
 rconv_stepmania_handle_modifier_entry(RconvStepmaniaModifier* elem, int idx, char* content)
 {
-	// TODO: Implement me
+	if (content == NULL) {
+		return;
+	}
+
+	bool free_content = true;
+
+	size_t len = strlen(content);
+
+	if (content[0] == '*') {
+		char* tmp = rconv_substr(content, 1, len);
+		elem->approach_rate = atoi(tmp);
+		free(tmp);
+	} else if (content[0] == 'p' || content[0] == 'P') {
+		elem->player = rconv_substr(content, 1, len);
+	} else if (content[len] == '%') {
+		elem->is_percent = true;
+		char* tmp = rconv_substr(content, 0, len - 1);
+		elem->magnitude = rconv_float_new_from_string(tmp);
+		free(tmp);
+	} else {
+		size_t tmp = strtoull(content, NULL, 10);
+
+		if (tmp == 0 && utf8cmp(content, "0") != 0) {
+			char* copy = malloc((len + 1) * sizeof(char));
+			strcpy(copy, content);
+			utf8lwr(copy);
+
+			if (utf8cmp(copy, "no") == 0) {
+				elem->is_percent = true;
+				elem->magnitude = rconv_float_new_from_number(0, 0, 0);
+			} else {
+				elem->name = content;
+				free_content = false;
+			}
+			free(copy);
+		} else {
+			elem->is_percent = false;
+			elem->magnitude = rconv_float_new_from_number(tmp, 0, 0);
+		}
+	}
+
+	if (free_content) {
+		free(content);
+	}
 }
 
 void
@@ -720,6 +773,7 @@ rconv_stepmania_free_all_modifiers(int len, RconvStepmaniaModifier** modifiers)
 
 RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
 	RconvStepmaniaModifier,
+	' ',
 	rconv_stepmania_new_modifier,
 	rconv_stepmania_handle_modifier_entry,
 	rconv_stepmania_verify_modifier_entry,
@@ -985,7 +1039,7 @@ rconv_stepmania_free_all_combo_changes(int len, RconvStepmaniaComboChange** comb
 	free(combo_changes);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaComboChange,
 	rconv_stepmania_new_combo_change,
 	rconv_stepmania_handle_combo_change_entry,
@@ -1057,7 +1111,7 @@ rconv_stepmania_free_all_speed_changes(int len, RconvStepmaniaSpeedChange** spee
 	free(speed_changes);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaSpeedChange,
 	rconv_stepmania_new_speed_change,
 	rconv_stepmania_handle_speed_change_entry,
@@ -1124,7 +1178,7 @@ rconv_stepmania_free_all_scroll_speed_changes(int len, RconvStepmaniaScrollSpeed
 	free(scroll_speed_changes);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaScrollSpeedChange,
 	rconv_stepmania_new_scroll_speed_change,
 	rconv_stepmania_handle_scroll_speed_change_entry,
@@ -1191,7 +1245,7 @@ rconv_stepmania_free_all_fake_sections(int len, RconvStepmaniaFakeSection** fake
 	free(fake_sections);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaFakeSection,
 	rconv_stepmania_new_fake_section,
 	rconv_stepmania_handle_fake_section_entry,
@@ -1257,7 +1311,7 @@ rconv_stepmania_free_all_labels(int len, RconvStepmaniaLabel** labels)
 	free(labels);
 }
 
-RCONV_STEPMANIA_PARSE_LIST_ENTRIES(
+RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(
 	RconvStepmaniaLabel,
 	rconv_stepmania_new_label,
 	rconv_stepmania_handle_label_entry,

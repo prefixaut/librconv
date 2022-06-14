@@ -32,104 +32,107 @@
 
 #define RCONV_STEPMANIA_CLEAR_LIST(type) RCONV_STEPMANIA_CLEAR_LIST_NAMED(type, type)
 
-#define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, newFn, idxFn, checkFn, freeFn) \
-	type** rconv_stepmania_parse_##type##_list_entries(char* data, int* len)    \
-	{                                                                           \
-		if (data == NULL) {                                                     \
-			*len = 0;                                                           \
-			return NULL;                                                        \
-		}                                                                       \
-                                                                                \
-		RconvList* list = rconv_list();                                         \
-		type* element = NULL;                                                   \
-		int elem_idx = 0;                                                       \
-		int state = 0;                                                          \
-		int idx = 0;                                                            \
-		int start = 0;                                                          \
-		int offset = 0;                                                         \
-		char* content = NULL;                                                   \
-		size_t data_len = strlen(data);                                         \
-                                                                                \
-		while (true) {                                                          \
-			if (element == NULL) {                                              \
-				element = newFn();                                              \
-			}                                                                   \
-                                                                                \
-			if (state == 2) {                                                   \
-				if (checkFn(element, elem_idx)) {                               \
-					rconv_list_add(list, element);                              \
-					elem_idx++;                                                 \
-				} else {                                                        \
-					freeFn(element);                                            \
-				}                                                               \
-				element = newFn();                                              \
-				state = 0;                                                      \
-				idx = 0;                                                        \
-			}                                                                   \
-                                                                                \
-			int start = -1;                                                     \
-			int last_not_whitespace = -1;                                       \
-                                                                                \
-			while (offset < data_len) {                                         \
-				const char c = *(data + offset);                                \
-				if (state == 0) {                                               \
-					if (rconv_is_whitespace(c)) {                               \
-						offset++;                                               \
-						continue;                                               \
-					}                                                           \
-					start = offset;                                             \
-					state = 1;                                                  \
-				}                                                               \
-                                                                                \
-				if (c == '=') {                                                 \
-					state = 1;                                                  \
-					break;                                                      \
-                                                                                \
-				} else if (c == ',') {                                          \
-					state = 2;                                                  \
-					break;                                                      \
-				}                                                               \
-                                                                                \
-				if (start == -1) {                                              \
-					start = offset;                                             \
-				}                                                               \
-				offset++;                                                       \
-				if (!rconv_is_whitespace(c)) {                                  \
-					last_not_whitespace = offset;                               \
-				}                                                               \
-			}                                                                   \
-                                                                                \
-			if (start > -1) {                                                   \
-				content = rconv_substr(data, start, last_not_whitespace);       \
-				offset++;                                                       \
-			} else {                                                            \
-				content = NULL;                                                 \
-			}                                                                   \
-                                                                                \
-			if (state == 1) {                                                   \
-				state = 0;                                                      \
-			}                                                                   \
-                                                                                \
-			idxFn(element, idx, content);                                       \
-                                                                                \
-			idx++;                                                              \
-                                                                                \
-			if (offset >= data_len) {                                           \
-				break;                                                          \
-			}                                                                   \
-		}                                                                       \
-                                                                                \
-		if (checkFn(element, elem_idx)) {                                       \
-			rconv_list_add(list, element);                                      \
-			elem_idx++;                                                         \
-		} else {                                                                \
-			freeFn(element);                                                    \
-		}                                                                       \
-                                                                                \
-		type** items = rconv_list_to_##type##_array(list, len);                 \
-		rconv_list_free(list);                                                  \
-		return items;                                                           \
+#define RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, valSep, newFn, idxFn, checkFn, freeFn) \
+	type** rconv_stepmania_parse_##type##_list_entries(char* data, int* len)            \
+	{                                                                                   \
+		if (data == NULL) {                                                             \
+			*len = 0;                                                                   \
+			return NULL;                                                                \
+		}                                                                               \
+                                                                                        \
+		RconvList* list = rconv_list();                                                 \
+		type* element = NULL;                                                           \
+		int elem_idx = 0;                                                               \
+		int state = 0;                                                                  \
+		int idx = 0;                                                                    \
+		int start = 0;                                                                  \
+		int offset = 0;                                                                 \
+		char* content = NULL;                                                           \
+		size_t data_len = strlen(data);                                                 \
+                                                                                        \
+		while (true) {                                                                  \
+			if (element == NULL) {                                                      \
+				element = newFn();                                                      \
+			}                                                                           \
+                                                                                        \
+			if (state == 2) {                                                           \
+				if (checkFn(element, elem_idx)) {                                       \
+					rconv_list_add(list, element);                                      \
+					elem_idx++;                                                         \
+				} else {                                                                \
+					freeFn(element);                                                    \
+				}                                                                       \
+				element = newFn();                                                      \
+				state = 0;                                                              \
+				idx = 0;                                                                \
+			}                                                                           \
+                                                                                        \
+			int start = -1;                                                             \
+			int last_not_whitespace = -1;                                               \
+                                                                                        \
+			while (offset < data_len) {                                                 \
+				const char c = *(data + offset);                                        \
+				if (state == 0) {                                                       \
+					if (rconv_is_whitespace(c)) {                                       \
+						offset++;                                                       \
+						continue;                                                       \
+					}                                                                   \
+					start = offset;                                                     \
+					state = 1;                                                          \
+				}                                                                       \
+                                                                                        \
+				if (c == valSep) {                                                      \
+					state = 1;                                                          \
+					break;                                                              \
+                                                                                        \
+				} else if (c == ',') {                                                  \
+					state = 2;                                                          \
+					break;                                                              \
+				}                                                                       \
+                                                                                        \
+				if (start == -1) {                                                      \
+					start = offset;                                                     \
+				}                                                                       \
+				offset++;                                                               \
+				if (!rconv_is_whitespace(c)) {                                          \
+					last_not_whitespace = offset;                                       \
+				}                                                                       \
+			}                                                                           \
+                                                                                        \
+			if (start > -1) {                                                           \
+				content = rconv_substr(data, start, last_not_whitespace);               \
+				offset++;                                                               \
+			} else {                                                                    \
+				content = NULL;                                                         \
+			}                                                                           \
+                                                                                        \
+			if (state == 1) {                                                           \
+				state = 0;                                                              \
+			}                                                                           \
+                                                                                        \
+			idxFn(element, idx, content);                                               \
+                                                                                        \
+			idx++;                                                                      \
+                                                                                        \
+			if (offset >= data_len) {                                                   \
+				break;                                                                  \
+			}                                                                           \
+		}                                                                               \
+                                                                                        \
+		if (checkFn(element, elem_idx)) {                                               \
+			rconv_list_add(list, element);                                              \
+			elem_idx++;                                                                 \
+		} else {                                                                        \
+			freeFn(element);                                                            \
+		}                                                                               \
+                                                                                        \
+		type** items = rconv_list_to_##type##_array(list, len);                         \
+		rconv_list_free(list);                                                          \
+		return items;                                                                   \
 	}
+
+#define RCONV_STEPMANIA_PARSE_DEFAULT_LIST_ENTRIES(type, newFn, idxFn, checkFn, freeFn) \
+	RCONV_STEPMANIA_PARSE_LIST_ENTRIES(type, ',', newFn, idxFn, checkFn, freeFn)
 
 /*
  * Types
@@ -218,7 +221,7 @@ typedef struct {
 typedef struct {
 	char* name;
 	char* player;
-	int approach_rate;
+	long approach_rate;
 	RconvFloat* magnitude;
 	bool is_percent;
 } RconvStepmaniaModifier;

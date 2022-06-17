@@ -425,3 +425,9 @@ rconv_float_subtract(RconvFloat* left, RconvFloat* right)
 	free(rcpy);
 	return out;
 }
+
+bool
+rconv_float_is_zero(RconvFloat* val)
+{
+	return val == NULL || (val->integer == 0 && val->fraction == 0);
+}

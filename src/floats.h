@@ -72,3 +72,6 @@ rconv_float_add(RconvFloat* left, RconvFloat* right);
 
 RconvFloat*
 rconv_float_subtract(RconvFloat* left, RconvFloat* right);
+
+bool
+rconv_float_is_zero(RconvFloat* val);

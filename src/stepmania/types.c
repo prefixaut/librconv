@@ -36,7 +36,7 @@ rconv_stepmania_verify_bpm_change_entry(RconvStepmaniaBpmChange* elem, int idx)
 		return false;
 	}
 
-	bool has_set = !rconv_float_is_zero(elem->bpm);
+	bool has_set = !rconv_decimal_is_zero(elem->bpm);
 
 	if (idx == 0) {
 		return has_set;
@@ -84,7 +84,7 @@ rconv_stepmania_verify_stop_entry(RconvStepmaniaStop* elem, int idx)
 		return false;
 	}
 
-	bool has_set = !rconv_float_is_zero(elem->duration);
+	bool has_set = !rconv_decimal_is_zero(elem->duration);
 
 	if (idx == 0) {
 		return has_set;
@@ -132,7 +132,7 @@ rconv_stepmania_verify_delay_entry(RconvStepmaniaDelay* elem, int idx)
 		return false;
 	}
 
-	bool has_set = !rconv_float_is_zero(elem->duration);
+	bool has_set = !rconv_decimal_is_zero(elem->duration);
 
 	if (idx == 0) {
 		return has_set;
@@ -326,7 +326,7 @@ rconv_stepmania_verify_background_change_entry(RconvStepmaniaBackgroundChange* e
 		return false;
 	}
 
-	bool has_set = elem->path != NULL || !rconv_float_is_zero(elem->update_rate) || elem->crossfade || elem->stretch_rewind
+	bool has_set = elem->path != NULL || !rconv_decimal_is_zero(elem->update_rate) || elem->crossfade || elem->stretch_rewind
 				   || elem->stretch_no_loop || elem->effect != NULL || elem->file2 != NULL || elem->transition != NULL
 				   || elem->color1 != NULL || elem->color2 != NULL;
 
@@ -374,7 +374,7 @@ rconv_stepmania_new_modifier()
 {
 	RconvStepmaniaModifier* out = (RconvStepmaniaModifier*) calloc(1, sizeof(RconvStepmaniaModifier));
 	out->approach_rate = 1;
-	out->magnitude = rconv_float_new_from_number(100, 0, 0);
+	out->magnitude = rconv_decimal_new_from_double(RCONV_STEPMANIA_FRACTION_PRECISION, 100.0);
 	out->is_percent = true;
 }
 
@@ -545,7 +545,7 @@ rconv_stepmania_verify_speed_change_entry(RconvStepmaniaSpeedChange* elem, int i
 		return false;
 	}
 
-	bool has_set = !rconv_float_is_zero(elem->duration) && !rconv_float_is_zero(elem->ratio);
+	bool has_set = !rconv_decimal_is_zero(elem->duration) && !rconv_decimal_is_zero(elem->ratio);
 
 	if (idx == 0) {
 		return has_set;
@@ -594,7 +594,7 @@ rconv_stepmania_verify_scroll_speed_change_entry(RconvStepmaniaScrollSpeedChange
 		return false;
 	}
 
-	bool has_set = !rconv_float_is_zero(elem->factor);
+	bool has_set = !rconv_decimal_is_zero(elem->factor);
 
 	if (idx == 0) {
 		return has_set;
@@ -642,7 +642,7 @@ rconv_stepmania_verify_fake_section_entry(RconvStepmaniaFakeSection* elem, int i
 		return false;
 	}
 
-	bool has_set = rconv_float_is_zero(elem->duration);
+	bool has_set = rconv_decimal_is_zero(elem->duration);
 
 	if (idx == 0) {
 		return has_set;

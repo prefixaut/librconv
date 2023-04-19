@@ -211,13 +211,13 @@ rconv_stepmania_parse(FILE* fp)
 			free_content = false;
 		} else if (utf8cmp(tag, "samplestart") == 0) {
 			free(chart->sample_start);
-			chart->sample_start = rconv_float_new_from_string(content);
+			chart->sample_start = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 		} else if (utf8cmp(tag, "samplelength") == 0) {
 			free(chart->sample_length);
-			chart->sample_length = rconv_float_new_from_string(content);
+			chart->sample_length = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 		} else if (utf8cmp(tag, "offset") == 0) {
 			free(chart->offset);
-			chart->offset = rconv_float_new_from_string(content);
+			chart->offset = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 		} else if (utf8cmp(tag, "selectable") == 0) {
 			chart->selectable = rconv_stepmania_is_yes(content);
 		} else if (utf8cmp(tag, "bgchanges") == 0) {

@@ -9,9 +9,9 @@
  * Own modules
  */
 #include "../common.h"
-#include "../floats.h"
+#include "../decimals.h"
 #include "../list.h"
-#include "types.h"
+#include "./types.h"
 
 #define RCONV_STEPMANIA_CLEAR_LIST_NAMED(type, name)        \
 	type** items = rconv_list_to_##name##_array(list, len); \

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common.h"
-#include "floats.h"
+#include "decimals.h"
 #include "memo.h"
 #include "stepmania.h"
 

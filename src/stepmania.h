@@ -14,7 +14,7 @@
  * Own modules
  */
 #include "common.h"
-#include "floats.h"
+#include "decimals.h"
 #include "list.h"
 #include "stepmania/types.h"
 #include "stepmania/parsers.h"

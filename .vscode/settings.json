@@ -2,6 +2,16 @@
     "files.associations": {
         "*.mc": "json",
         "*.in": "c",
-        "*.h": "c"
-    }
+        "*.h": "c",
+        "functional": "c",
+        "system_error": "c",
+        "array": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "sstream": "c",
+        "cmath": "c",
+        "complex": "c"
+    },
+    "cmake.configureOnOpen": false
 }

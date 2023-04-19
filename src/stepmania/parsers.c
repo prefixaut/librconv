@@ -21,9 +21,9 @@ void
 rconv_stepmania_handle_bpm_change_entry(RconvStepmaniaBpmChange* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->bpm = rconv_float_new_from_string(content);
+		elem->bpm = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	}
 	free(content);
 }
@@ -32,9 +32,9 @@ void
 rconv_stepmania_handle_stop_entry(RconvStepmaniaStop* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->duration = rconv_float_new_from_string(content);
+		elem->duration = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	}
 
 	free(content);
@@ -44,9 +44,9 @@ void
 rconv_stepmania_handle_delay_entry(RconvStepmaniaDelay* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->duration = rconv_float_new_from_string(content);
+		elem->duration = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	}
 
 	free(content);
@@ -56,7 +56,7 @@ void
 rconv_stepmania_handle_time_signature_entry(RconvStepmaniaTimeSignature* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
 		elem->numerator = atoi(content);
 	} else if (idx == 2) {
@@ -82,7 +82,7 @@ void
 rconv_stepmania_handle_tick_count_entry(RconvStepmaniaTickCount* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
 		elem->count = atoi(content);
 	}
@@ -95,12 +95,12 @@ rconv_stepmania_handle_background_change_entry(RconvStepmaniaBackgroundChange* e
 {
 	bool free_content = true;
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
 		elem->path = content;
 		free_content = false;
 	} else if (idx == 2) {
-		elem->update_rate = rconv_float_new_from_string(content);
+		elem->update_rate = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 3) {
 		elem->crossfade = rconv_parse_bool(content);
 	} else if (idx == 4) {
@@ -147,7 +147,7 @@ rconv_stepmania_handle_modifier_entry(RconvStepmaniaModifier* elem, int idx, cha
 	} else if (content[len] == '%') {
 		elem->is_percent = true;
 		char* tmp = rconv_substr(content, 0, len - 1);
-		elem->magnitude = rconv_float_new_from_string(tmp);
+		elem->magnitude = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, tmp);
 		free(tmp);
 	} else {
 		size_t tmp = strtoull(content, NULL, 10);
@@ -159,7 +159,7 @@ rconv_stepmania_handle_modifier_entry(RconvStepmaniaModifier* elem, int idx, cha
 
 			if (utf8cmp(copy, "no") == 0) {
 				elem->is_percent = true;
-				elem->magnitude = rconv_float_new_from_number(0, 0, 0);
+				elem->magnitude = rconv_decimal_new_from_double(RCONV_STEPMANIA_FRACTION_PRECISION, 0.0);
 			} else {
 				elem->name = content;
 				free_content = false;
@@ -167,7 +167,7 @@ rconv_stepmania_handle_modifier_entry(RconvStepmaniaModifier* elem, int idx, cha
 			free(copy);
 		} else {
 			elem->is_percent = false;
-			elem->magnitude = rconv_float_new_from_number(tmp, 0, 0);
+			elem->magnitude = rconv_decimal_new_from_double(RCONV_STEPMANIA_FRACTION_PRECISION, tmp);
 		}
 	}
 
@@ -180,7 +180,7 @@ void
 rconv_stepmania_handle_combo_change_entry(RconvStepmaniaComboChange* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
 		elem->hit = atoi(content);
 	} else if (idx == 2) {
@@ -194,11 +194,11 @@ void
 rconv_stepmania_handle_speed_change_entry(RconvStepmaniaSpeedChange* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->ratio = rconv_float_new_from_string(content);
+		elem->ratio = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 2) {
-		elem->duration = rconv_float_new_from_string(content);
+		elem->duration = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 3) {
 		elem->in_seconds = rconv_parse_bool(content);
 	}
@@ -210,9 +210,9 @@ void
 rconv_stepmania_handle_scroll_speed_change_entry(RconvStepmaniaScrollSpeedChange* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->factor = rconv_float_new_from_string(content);
+		elem->factor = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	}
 
 	free(content);
@@ -222,9 +222,9 @@ void
 rconv_stepmania_handle_fake_section_entry(RconvStepmaniaFakeSection* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	} else if (idx == 1) {
-		elem->duration = rconv_float_new_from_string(content);
+		elem->duration = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 	}
 
 	free(content);
@@ -234,7 +234,7 @@ void
 rconv_stepmania_handle_label_entry(RconvStepmaniaLabel* elem, int idx, char* content)
 {
 	if (idx == 0) {
-		elem->beat = rconv_float_new_from_string(content);
+		elem->beat = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 		free(content);
 	} else if (idx == 1) {
 		elem->content = content;
@@ -342,13 +342,13 @@ rconv_stepmania_parse_timed_attacks(char* data, int* len)
 
 		} else if (state == 3) {
 			if (idx % 3 == 0) {
-				element->time = rconv_float_new_from_string(content);
+				element->time = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 				state = 0;
 			} else if (idx % 3 == 1) {
-				RconvFloat* tmp = rconv_float_new_from_string(content);
+				RconvDecimal* tmp = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 
 				if (is_end) {
-					element->length = rconv_float_subtract(tmp, element->time);
+					element->length = rconv_decimal_subtract(tmp, element->time);
 					free(tmp);
 				} else {
 					element->length = tmp;

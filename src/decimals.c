@@ -21,6 +21,27 @@ rconv_decimal_free(RconvDecimal* ptr)
 }
 
 RconvDecimal*
+rconv_decimal_new_from_int(int precision, int integer, int fraction)
+{
+	RconvDecimal* ptr = rconv_decimal_new(precision);
+	ptr->integer = integer;
+
+	// Fix the precision of the fraction
+	int fract_max = pow(10, precision);
+	while (fraction > fract_max) {
+		fraction = (int) fraction / 10;
+	}
+	while (fract_max > (fraction * 10)) {
+		fraction *= 10;
+	}
+
+	ptr->fraction = fraction;
+
+	return ptr;
+}
+
+
+RconvDecimal*
 rconv_decimal_new_from_double(int precision, double value)
 {
 	RconvDecimal* ptr = rconv_decimal_new(precision);
@@ -125,8 +146,6 @@ rconv_decimal_set_from_string(RconvDecimal* result, const char* str)
 		fraction = atoi(slice);
 		free(slice);
 
-		int fraction_max = pow(10, result->precision - 1);
-
 		if (fraction_len < result->precision) {
 			fraction = fraction * pow(10, result->precision - fraction_len);
 		} else if (fraction_len > result->precision) {
@@ -140,10 +159,51 @@ rconv_decimal_set_from_string(RconvDecimal* result, const char* str)
 	return RCONV_DECIMAL_OK;
 }
 
+int*
+_rconv_decimal_normalize_fractions(RconvDecimal* left, RconvDecimal* right)
+{
+	int* out = malloc(sizeof(int) * 3);
+	out[0] = left->precision;
+	out[1] = left->fraction;
+	out[2] = right->fraction;
+
+	if (left->precision == right->precision) {
+		return out;
+	}
+
+	if (left->precision > right->precision) {
+		int inc = pow(10, left->precision - right->precision);
+		out[2] = right->fraction * inc;
+	} else {
+		int inc = pow(10, right->precision - left->precision);
+		out[1] = left->fraction * inc;
+	}
+
+	return out;
+}
+
 RconvDecimal*
 rconv_decimal_add(RconvDecimal* left, RconvDecimal* right)
 {
-	return left;
+	int int_sum = left->integer + right->integer;
+
+	int* normalized = _rconv_decimal_normalize_fractions(left, right);
+
+	int fract_max = pow(10, normalized[0]);
+	int fract_sum = left->fraction + right->fraction;
+
+	// It can only be partially bigger, as we limit the precision.
+	// In case of precision 4, we would have a max of 1000
+	// So maximum would be something like 999 + 999 = 1998
+	if (fract_sum >= fract_max) {
+		fract_sum -= fract_max;
+		int_sum += 1;
+	}
+
+	RconvDecimal* out = rconv_decimal_new_from_int(normalized[0], int_sum, fract_sum);
+	free(normalized);
+
+	return out;
 }
 
 RconvDecimal*
@@ -156,4 +216,21 @@ bool
 rconv_decimal_is_zero(RconvDecimal* ptr)
 {
 	return ptr == NULL || (ptr->integer == 0 && ptr->fraction == 0);
+}
+
+bool
+rconv_decimal_is_equal(RconvDecimal* one, RconvDecimal* two)
+{
+	if (one == NULL && two == NULL) {
+		return true;
+	}
+	if (one == NULL || two == NULL) {
+		return false;
+	}
+
+	int* normalized = _rconv_decimal_normalize_fractions(one, two);
+	bool out = one->integer == two->integer && normalized[1] == normalized[2];
+	free(normalized);
+
+	return out;
 }

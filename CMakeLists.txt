@@ -2,20 +2,20 @@
 # project specific logic here.
 #
 cmake_minimum_required (VERSION 3.8)
-set(PROJECT_NAME librconv)
+set(PROJECT_NAME rconv)
 set(PROJECT_VERSION_MAJOR "0")
 set(PROJECT_VERSION_MINOR "1")
 set(PROJECT_VERSION_PATCH "0")
 set(PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
-project(${PROJECT_NAME} VERSION 0.1 LANGUAGES C)
+project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} LANGUAGES C)
 
 # Disable windows warnings to use secure (_s) functions instead
 if(MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W3")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W3 -g")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -g")
 endif()
 
 foreach(flag ${CHECK_C_FLAGS})

@@ -6,8 +6,10 @@ START_TEST(test_parse_stepmania_from_file)
 {
     RconvStepmaniaChartFile* chart;
 
-    chart = rconv_stepmania_parse_from_file("../test-files/parse-stepmania-1.sm");
-    ck_assert_str_eq(chart->artist, "Hell ye");
+    chart = rconv_stepmania_parse_from_file("./test-files/css2022.sm");
+    ck_assert_str_eq(chart->artist, "Will Wood");
+    ck_assert_str_eq(chart->title, "2econd 2ight 2eer (that was fun, goodbye)");
+    ck_assert_str_eq(chart->subtitle, "From prefixaut to JohnFortnite");
 
     rconv_stepmania_free_chart_file(chart);
 }
@@ -15,13 +17,9 @@ END_TEST
 
 Suite* stepmania_suite(void)
 {
-    Suite* s;
-    TCase* tc_parse;
+    Suite* s = suite_create("Stepmania");
 
-    s = suite_create("Stepmania");
-
-    tc_parse = tcase_create("Parse from File");
-
+    TCase* tc_parse = tcase_create("Parse from File");
     tcase_add_test(tc_parse, test_parse_stepmania_from_file);
     suite_add_tcase(s, tc_parse);
 

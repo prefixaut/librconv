@@ -55,11 +55,109 @@ START_TEST(test_set_from_string)
     ck_assert_int_eq(dec->fraction, 1337);
     rconv_decimal_free(dec);
 }
+END_TEST
 
-Suite* stepmania_suite(void)
+START_TEST(test_new_from_int)
 {
-    Suite* s;
-    s = suite_create("Decimals");
+    RconvDecimal* dec;
+    
+    dec = rconv_decimal_new_from_int(5, 12345, 67890);
+    ck_assert_int_eq(dec->precision, 5);
+    ck_assert_int_eq(dec->integer, 12345);
+    ck_assert_int_eq(dec->fraction, 67890);
+    rconv_decimal_free(dec);
+
+    dec = rconv_decimal_new_from_int(5, 12345, 678);
+    ck_assert_int_eq(dec->precision, 5);
+    ck_assert_int_eq(dec->integer, 12345);
+    ck_assert_int_eq(dec->fraction, 67800);
+    rconv_decimal_free(dec);
+
+    dec = rconv_decimal_new_from_int(5, 12345, 1234567890);
+    ck_assert_int_eq(dec->precision, 5);
+    ck_assert_int_eq(dec->integer, 12345);
+    ck_assert_int_eq(dec->fraction, 12345);
+    rconv_decimal_free(dec);
+}
+END_TEST
+
+START_TEST(test_is_equal)
+{
+    RconvDecimal* left;
+    RconvDecimal* right;
+
+    left = rconv_decimal_new_from_int(3, 123, 999);
+    right = rconv_decimal_new_from_int(3, 123, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == true);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(5, 123, 99900);
+    right = rconv_decimal_new_from_int(3, 123, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == true);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 123, 999);
+    right = rconv_decimal_new_from_int(5, 123, 99900);
+    ck_assert(rconv_decimal_is_equal(left, right) == true);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 123, 999);
+    right = rconv_decimal_new_from_int(3, 123, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == true);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 123, 123);
+    right = rconv_decimal_new_from_int(3, 123, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == false);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 123, 999);
+    right = rconv_decimal_new_from_int(3, 123, 123);
+    ck_assert(rconv_decimal_is_equal(left, right) == false);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 999, 999);
+    right = rconv_decimal_new_from_int(3, 123, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == false);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+
+    left = rconv_decimal_new_from_int(3, 123, 999);
+    right = rconv_decimal_new_from_int(3, 999, 999);
+    ck_assert(rconv_decimal_is_equal(left, right) == false);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+}
+END_TEST
+
+START_TEST(test_add)
+{
+    RconvDecimal* left;
+    RconvDecimal* right;
+    RconvDecimal* sum;
+    RconvDecimal* expected;
+
+    left = rconv_decimal_new_from_int(5, 1337, 12345);
+    right = rconv_decimal_new_from_int(5, 33, 12345);
+    sum = rconv_decimal_add(left, right);
+    expected = rconv_decimal_new_from_int(5, 1370, 24690);
+    ck_assert(rconv_decimal_is_equal(sum, expected) == true);
+    rconv_decimal_free(left);
+    rconv_decimal_free(right);
+    rconv_decimal_free(sum);
+    rconv_decimal_free(expected);
+}
+END_TEST
+
+Suite* decimals_suite(void)
+{
+    Suite* s = suite_create("Decimals");
 
     TCase* tc_set_from_double = tcase_create("Set from Double");
     tcase_add_test(tc_set_from_double, test_set_from_double);
@@ -68,6 +166,18 @@ Suite* stepmania_suite(void)
     TCase* tc_set_from_string = tcase_create("Set from String");
     tcase_add_test(tc_set_from_string, test_set_from_string);
     suite_add_tcase(s, tc_set_from_string);
+
+    TCase* tc_new_from_int = tcase_create("Create from Integers");
+    tcase_add_test(tc_new_from_int, test_new_from_int);
+    suite_add_tcase(s, tc_new_from_int);
+
+    TCase* tc_is_equal = tcase_create("Is Equal");
+    tcase_add_test(tc_is_equal, test_is_equal);
+    suite_add_tcase(s, tc_is_equal);
+
+    TCase* tc_add = tcase_create("Add");
+    tcase_add_test(tc_add, test_add);
+    suite_add_tcase(s, tc_add);
 
     return s;
 }
@@ -78,7 +188,7 @@ int main(void)
     Suite* s;
     SRunner* sr;
 
-    s = stepmania_suite();
+    s = decimals_suite();
     sr = srunner_create(s);
 
     srunner_run_all(sr, CK_NORMAL);

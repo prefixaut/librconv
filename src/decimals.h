@@ -27,6 +27,9 @@ void
 rconv_decimal_free(RconvDecimal* ptr);
 
 RconvDecimal*
+rconv_decimal_new_from_int(int precision, int integer, int fraction);
+
+RconvDecimal*
 rconv_decimal_new_from_double(int precision, double value);
 
 int
@@ -46,3 +49,6 @@ rconv_decimal_subtract(RconvDecimal* left, RconvDecimal* right);
 
 bool
 rconv_decimal_is_zero(RconvDecimal* ptr);
+
+bool
+rconv_decimal_is_equal(RconvDecimal* one, RconvDecimal* two);

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "common.h"
-
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "common.h"
 
 #define RCONV_DECIMAL_OK 0
 #define RCONV_DECIMAL_ERR_ILLEGAL_CHAR 1

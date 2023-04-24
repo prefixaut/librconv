@@ -12,10 +12,10 @@ project(${PROJECT_NAME} VERSION ${PROJECT_VERSION} LANGUAGES C)
 
 # Disable windows warnings to use secure (_s) functions instead
 if(MSVC)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W3 -g")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W3")
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 else()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -g")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
 endif()
 
 foreach(flag ${CHECK_C_FLAGS})

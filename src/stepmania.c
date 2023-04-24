@@ -15,7 +15,7 @@ rconv_stepmania_formatting_parameters(RconvStepmaniaChartFile* chart)
 }
 
 void
-rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
+rconv_stepmania_parse_tags(RconvDataDescriptor* dd, char** tag, char** content)
 {
 	int state = 0;
 	int start = -1;
@@ -23,8 +23,8 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 	*content = NULL;
 	*tag = NULL;
 
-	while (feof(fp) == 0) {
-		char c = fgetc(fp);
+	while (!rconv_dd_is_eof(dd)) {
+		char c = rconv_dd_read_char(dd);
 
 		if (state == 0) {
 			if (c == '#') {
@@ -35,14 +35,12 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 
 		if (state == 1) {
 			if (c == ':') {
-				int end = ftell(fp);
+				int end = dd->position;
 				int len = last_not_whitespace - start;
 
-				fseek(fp, start, SEEK_SET);
+				rconv_dd_set_position(dd, start);
 				*tag = malloc((len + 1) * sizeof(char));
-				fread(*tag, sizeof(char), len, fp);
-				(*tag)[len] = '\0';
-				fseek(fp, end, SEEK_SET);
+				rconv_dd_read(dd, *tag, len);
 
 				state = 2;
 				start = -1;
@@ -50,9 +48,9 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 
 			} else if (!rconv_is_whitespace(c)) {
 				if (start == -1) {
-					start = ftell(fp) - 1;
+					start = dd->position - 1;
 				}
-				last_not_whitespace = ftell(fp);
+				last_not_whitespace = dd->position;
 			}
 
 			continue;
@@ -60,24 +58,22 @@ rconv_stepmania_parse_tags(FILE* fp, char** tag, char** content)
 
 		if (state == 2) {
 			if (c == ';') {
-				int end = ftell(fp);
+				int end = dd->position;
 				int len = last_not_whitespace - start;
 
 				// FIXME: In the attacks, the allocated space is 4 chars too long
 				// Other tags work just fine (???)
-				fseek(fp, start, SEEK_SET);
+				rconv_dd_set_position(dd, start);
 				*content = malloc((len + 1) * sizeof(char));
-				fread(*content, sizeof(char), len, fp);
-				(*content)[len] = '\0';
-				fseek(fp, end, SEEK_SET);
+				rconv_dd_read(dd, *content, len);
 
 				break;
 
 			} else if (!rconv_is_whitespace(c)) {
 				if (start == -1) {
-					start = ftell(fp) - 1;
+					start = dd->position - 1;
 				}
-				last_not_whitespace = ftell(fp);
+				last_not_whitespace = dd->position;
 			}
 		}
 	}
@@ -130,7 +126,7 @@ rconv_stepmania_parse_string_list(char* data, int* len)
 }
 
 RconvStepmaniaChartFile*
-rconv_stepmania_parse(FILE* fp)
+rconv_stepmania_parse(RconvDataDescriptor* dd)
 {
 	RconvStepmaniaChartFile* chart = (RconvStepmaniaChartFile*) calloc(1, sizeof(RconvStepmaniaChartFile));
 	if (chart == NULL) {
@@ -142,7 +138,7 @@ rconv_stepmania_parse(FILE* fp)
 	RconvList* notes = rconv_list();
 
 	while (true) {
-		rconv_stepmania_parse_tags(fp, &tag, &content);
+		rconv_stepmania_parse_tags(dd, &tag, &content);
 		if (tag == NULL) {
 			if (content != NULL) {
 				free(content);
@@ -300,49 +296,27 @@ rconv_stepmania_parse(FILE* fp)
 RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_string(char* data)
 {
-	// if (data == NULL) {
-	// 	return NULL;
-	// }
+	RconvDataDescriptor* dd = rconv_dd_new_from_string(data);
+	if (dd == NULL) {
+		return NULL;
+	}
 
-	// size_t size = strlen(data);
-	// FILE* fp;
-	// RconvStepmaniaChartFile* out = NULL;
+	RconvStepmaniaChartFile* chart = rconv_stepmania_parse(dd);
+	rconv_dd_free(dd);
 
-	// #ifdef __linux__
-	// 	fp = = open_memstream(&data, &size);
-	// 	out = rconv_stepmania_parse(fp);
-
-	// 	fclose(fp);
-	// #elif _WIN32
-	// 	fmem* buffer = malloc(sizeof(fmem));
-	// 	fmem_init(buffer);
-	// 	fmem_mem(buffer, *data, size);
-
-	// 	fp = fmem_open(buffer, "r");
-	// 	out = rconv_stepmania_parse(fp);
-
-	// 	fclose(fp);
-	// 	fmem_term(buffer);
-	// #endif
-
-	// return out;
-	return NULL;
+	return chart;
 }
 
 RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_file(char* file_path)
 {
-	if (file_path == NULL) {
+	RconvDataDescriptor* dd = rconv_dd_new_from_file(file_path);
+	if (dd == NULL) {
 		return NULL;
 	}
+	
+	RconvStepmaniaChartFile* chart = rconv_stepmania_parse(dd);
+	rconv_dd_free(dd);
 
-	FILE* fp = fopen(file_path, "r");
-	if (fp == NULL) {
-		return NULL;
-	}
-
-	RconvStepmaniaChartFile* out = rconv_stepmania_parse(fp);
-	fclose(fp);
-
-	return out;
+	return chart;
 }

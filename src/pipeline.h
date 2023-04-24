@@ -8,7 +8,7 @@
 /*
  * Own modules
  */
-#include "./common.h"
+#include "common.h"
 
 /*
  * Types

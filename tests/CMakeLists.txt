@@ -30,6 +30,7 @@ if(CHECK_FOUND)
     link_directories(${CHECK_LIBRARY_DIRS})
 
     set(TEST_SOURCES
+        check_data_descriptor
         check_decimals
         check_stepmania
     )

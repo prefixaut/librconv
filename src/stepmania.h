@@ -8,12 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utf8.h>
-// #include <fmem.h>
 
 /*
  * Own modules
  */
 #include "common.h"
+#include "data_descriptor.h"
 #include "decimals.h"
 #include "list.h"
 #include "stepmania/types.h"
@@ -28,7 +28,7 @@
  * Functions
  */
 RconvStepmaniaChartFile*
-rconv_stepmania_parse(FILE* fp);
+rconv_stepmania_parse(RconvDataDescriptor* dd);
 
 RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_string(char* data);

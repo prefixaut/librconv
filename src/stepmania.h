@@ -18,6 +18,7 @@
 #include "list.h"
 #include "stepmania/types.h"
 #include "stepmania/parsers.h"
+#include "stepmania/tokenizer.h"
 
 /*
  * Definitions

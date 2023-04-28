@@ -1,20 +1,40 @@
 #include "data_descriptor.h"
 
 RconvDataDescriptor*
-rconv_dd_new_from_file(char* file_path)
+rconv_dd_new_from_file(FILE* fp)
 {
-    FILE* fp = fopen(file_path, "r");
     if (fp == NULL) {
         return NULL;
     }
 
+    size_t position = ftell(fp);
+    fseek(fp, 0, SEEK_END);
+    size_t length = ftell(fp);
+    fseek(fp, position, SEEK_SET);
+
     RconvDataDescriptor* dd = malloc(sizeof(RconvDataDescriptor));
     dd->type = RCONV_DD_TYPE_FILE;
-    dd->file_path = file_path;
     dd->file_ptr = fp;
-    dd->str_ptr = NULL;
-    dd->str_len = 0;
+    dd->position = position;
+    dd->length = length;
+    dd->mem_ptr = NULL;
+
+    return dd;
+}
+
+RconvDataDescriptor*
+rconv_dd_new_from_memory(void* memory, size_t length)
+{
+    if (memory == NULL) {
+        return NULL;
+    }
+
+    RconvDataDescriptor* dd = malloc(sizeof(RconvDataDescriptor));
+    dd->type = RCONV_DD_TYPE_MEMORY;
+    dd->mem_ptr = memory;
     dd->position = 0;
+    dd->length = length;
+    dd->file_ptr = NULL;
 
     return dd;
 }
@@ -26,15 +46,7 @@ rconv_dd_new_from_string(char* content)
         return NULL;
     }
 
-    RconvDataDescriptor* dd = malloc(sizeof(RconvDataDescriptor));
-    dd->type = RCONV_DD_TYPE_STRING;
-    dd->file_path = NULL;
-    dd->file_ptr = NULL;
-    dd->str_ptr = content;
-    dd->str_len = strlen(content);
-    dd->position = 0;
-
-    return dd;
+    return rconv_dd_new_from_memory(content, strlen(content));
 }
 
 void
@@ -58,13 +70,7 @@ rconv_dd_is_eof(RconvDataDescriptor* dd)
         return true;
     }
 
-    if (dd->type == RCONV_DD_TYPE_FILE) {
-        return feof(dd->file_ptr) == 0;
-    } else if (dd->type == RCONV_DD_TYPE_STRING) {
-        return dd->position >= dd->str_len;
-    }
-
-    return true;
+    return dd->position >= dd->length;
 }
 
 bool
@@ -80,8 +86,9 @@ rconv_dd_set_position(RconvDataDescriptor* dd, size_t position)
             dd->position = position;
         }
         return changed;
-    } else if (dd->type == RCONV_DD_TYPE_STRING) {
-        if (position > dd->str_len) {
+
+    } else if (dd->type == RCONV_DD_TYPE_MEMORY) {
+        if (position > dd->length) {
             return false;
         }
         dd->position = position;
@@ -91,37 +98,75 @@ rconv_dd_set_position(RconvDataDescriptor* dd, size_t position)
     return false;
 }
 
-void
-rconv_dd_read(RconvDataDescriptor* dd, char* target, size_t length)
+size_t
+rconv_dd_read(RconvDataDescriptor* dd, void* target, size_t length)
 {
     if (dd == NULL || target == NULL || rconv_dd_is_eof(dd)) {
-        return;
+        return 0;
+    }
+
+    size_t new_pos = dd->position + length;
+    size_t new_len = length;
+
+    // Check the bounds of the read. If it would read out of bounds, resize
+    // the read to be inbounds.
+    if (new_pos > dd->length) {
+        size_t overflow = new_pos - dd->length;
+        new_len -= overflow;
+        new_pos = dd->length;
     }
 
     if (dd->type == RCONV_DD_TYPE_FILE) {
-        fread(target, sizeof(char), length + 1, dd->file_ptr);
-        dd->position += length;
-        return;
-    } else if (dd->type == RCONV_DD_TYPE_STRING) {
-        size_t new_pos = dd->position + length;
-        size_t new_len = length;
+        fread(target, 1, new_len, dd->file_ptr);
+        dd->position += new_len;
+        return new_len;
 
-        // Check the bounds of the read. If it would read out of bounds, resize
-        // the read to be inbounds.
-        if (new_pos > dd->str_len) {
-            size_t overflow = new_pos - dd->str_len;
-            new_len -= overflow;
-            new_pos = dd->str_len;
-        }
-
+    } else if (dd->type == RCONV_DD_TYPE_MEMORY) {
         if (new_len > 0) {
-            strncpy(target, dd->str_ptr + dd->position, new_len);
+            memcpy(target, dd->mem_ptr + dd->position, new_len);
+        }
+        dd->position = new_pos;
+        return new_len;
+    }
+
+    return 0;
+}
+
+size_t
+rconv_dd_read_string(RconvDataDescriptor* dd, char* target, size_t length)
+{
+    if (dd == NULL || target == NULL || rconv_dd_is_eof(dd)) {
+        return 0;
+    }
+
+    size_t new_pos = dd->position + length;
+    size_t new_len = length;
+
+    // Check the bounds of the read. If it would read out of bounds, resize
+    // the read to be inbounds.
+    if (new_pos > dd->length) {
+        size_t overflow = new_pos - dd->length;
+        new_len -= overflow;
+        new_pos = dd->length;
+    }
+
+    if (dd->type == RCONV_DD_TYPE_FILE) {
+        fread(target, sizeof(char), new_len, dd->file_ptr);
+        target[new_len + 1] = '\0';
+        dd->position += new_len;
+        return new_len;
+
+    } else if (dd->type == RCONV_DD_TYPE_MEMORY) {
+        if (new_len > 0) {
+            strncpy(target, dd->mem_ptr + dd->position, new_len);
         }
         target[new_len + 1] = '\0';
         dd->position = new_pos;
 
-        return;
+        return new_len;
     }
+
+    return 0;
 }
 
 char
@@ -135,8 +180,9 @@ rconv_dd_read_char(RconvDataDescriptor* dd)
         char c = fgetc(dd->file_ptr);
         dd->position++;
         return c;
-    } else if (dd->type == RCONV_DD_TYPE_STRING) {
-        char c = dd->str_ptr[dd->position];
+
+    } else if (dd->type == RCONV_DD_TYPE_MEMORY) {
+        char c = ((char*) dd->mem_ptr)[dd->position];
         dd->position++;
         return c;
     }

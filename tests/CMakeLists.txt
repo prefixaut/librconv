@@ -4,6 +4,15 @@ find_package(PkgConfig)
 
 pkg_search_module(CHECK check)
 
+include(CheckCSourceCompiles)
+include(CheckCSourceRuns)
+include(CheckFunctionExists)
+include(CheckIncludeFile)
+include(CheckIncludeFiles)
+include(CheckLibraryExists)
+include(CheckSymbolExists)
+include(CheckTypeSize)
+
 if(CHECK_FOUND)
     if(CHECK_VERSION VERSION_LESS 0.10.0)
         MESSAGE( "Check version older than 0.10.0" )
@@ -30,6 +39,7 @@ if(CHECK_FOUND)
     link_directories(${CHECK_LIBRARY_DIRS})
 
     set(TEST_SOURCES
+        check_common
         check_data_descriptor
         check_decimals
         check_stepmania
@@ -37,7 +47,7 @@ if(CHECK_FOUND)
 
     foreach(test_file ${TEST_SOURCES})
         add_executable("${test_file}" "${test_file}.c")
-        target_link_libraries("${test_file}" ${PROJECT_NAME} "m" "check" "subunit")
+        target_link_libraries("${test_file}" ${PROJECT_NAME} check m subunit)
         add_test("${test_file}" "${CMAKE_CURRENT_BINARY_DIR}/${test_file}")
     endforeach()
 

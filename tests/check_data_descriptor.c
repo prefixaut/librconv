@@ -28,7 +28,7 @@ START_TEST(test_dd_new_from_string)
 
     content = TEST_DD_CONTENT;
     dd = rconv_dd_new_from_string(content);
-    ck_assert_int_eq(dd->type, RCONV_DD_TYPE_STRING);
+    ck_assert_int_eq(dd->type, RCONV_DD_TYPE_MEMORY);
     ck_assert_int_eq(dd->position, 0);
     rconv_dd_free(dd);
 }
@@ -43,7 +43,7 @@ START_TEST(test_dd_read_from_string)
     content = TEST_DD_CONTENT;
     dd = rconv_dd_new_from_string(content);
     read = malloc(sizeof(char) * 12);
-    rconv_dd_read(dd, read, 11);
+    rconv_dd_read_string(dd, read, 11);
     ck_assert_str_eq(read, "hello world");
     free(read);
     rconv_dd_free(dd);

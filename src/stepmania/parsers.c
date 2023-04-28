@@ -377,23 +377,23 @@ void
 rconv_stepmania_parse_chart_type(char* data, RconvStepmaniaChartType* type)
 {
 	if (utf8cmp(data, "dance-single") == 0) {
-		*type = DANCE_SINGLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_DANCE_SINGLE;
 	} else if (utf8cmp(data, "dance-double") == 0) {
-		*type = DANCE_DOUBLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_DANCE_DOUBLE;
 	} else if (utf8cmp(data, "dance-couple") == 0) {
-		*type = DANCE_COUPLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_DANCE_COUPLE;
 	} else if (utf8cmp(data, "dance-routine") == 0) {
-		*type = DANCE_ROUTINE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_DANCE_ROUTINE;
 	} else if (utf8cmp(data, "dance-solo") == 0) {
-		*type = DANCE_SOLO;
+		*type = RCONV_STEPMANIA_CHART_TYPE_DANCE_SOLO;
 	} else if (utf8cmp(data, "pump-single") == 0) {
-		*type = PUMP_SINGLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_PUMP_SINGLE;
 	} else if (utf8cmp(data, "pump-halfdouble") == 0) {
-		*type = PUMP_HALF_DOUBLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_PUMP_HALF_DOUBLE;
 	} else if (utf8cmp(data, "pump-double") == 0) {
-		*type = PUMP_DOUBLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_PUMP_DOUBLE;
 	} else if (utf8cmp(data, "pump-couple") == 0) {
-		*type = PUMP_COUPLE;
+		*type = RCONV_STEPMANIA_CHART_TYPE_PUMP_COUPLE;
 	} else {
 		*type = -1;
 	}
@@ -403,17 +403,17 @@ void
 rconv_stepmania_parse_difficulty(char* data, RconvStepmaniaDifficulty* diff)
 {
 	if (utf8cmp(data, "beginner") == 0) {
-		*diff = BEGINNER;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_BEGINNER;
 	} else if (utf8cmp(data, "easy") == 0) {
-		*diff = EASY;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_EASY;
 	} else if (utf8cmp(data, "medium") == 0) {
-		*diff = MEDIUM;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_MEDIUM;
 	} else if (utf8cmp(data, "hard") == 0) {
-		*diff = HARD;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_HARD;
 	} else if (utf8cmp(data, "challange") == 0) {
-		*diff = CHALLANGE;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_CHALLANGE;
 	} else {
-		*diff = EDIT;
+		*diff = RCONV_STEPMANIA_DIFFICULTY_EDIT;
 	}
 }
 

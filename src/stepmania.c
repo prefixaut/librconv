@@ -35,12 +35,11 @@ rconv_stepmania_parse_tags(RconvDataDescriptor* dd, char** tag, char** content)
 
 		if (state == 1) {
 			if (c == ':') {
-				int end = dd->position;
 				int len = last_not_whitespace - start;
 
 				rconv_dd_set_position(dd, start);
 				*tag = malloc((len + 1) * sizeof(char));
-				rconv_dd_read(dd, *tag, len);
+				rconv_dd_read_string(dd, *tag, len);
 
 				state = 2;
 				start = -1;
@@ -58,14 +57,13 @@ rconv_stepmania_parse_tags(RconvDataDescriptor* dd, char** tag, char** content)
 
 		if (state == 2) {
 			if (c == ';') {
-				int end = dd->position;
 				int len = last_not_whitespace - start;
 
 				// FIXME: In the attacks, the allocated space is 4 chars too long
 				// Other tags work just fine (???)
 				rconv_dd_set_position(dd, start);
 				*content = malloc((len + 1) * sizeof(char));
-				rconv_dd_read(dd, *content, len);
+				rconv_dd_read_string(dd, *content, len);
 
 				break;
 
@@ -91,7 +89,7 @@ rconv_stepmania_parse_string_list(char* data, int* len)
 {
 	RconvList* list = rconv_list();
 
-	int offset = 0;
+	size_t offset = 0;
 	size_t size = strlen(data);
 	int start = 0;
 	int has_content = false;
@@ -254,7 +252,7 @@ rconv_stepmania_parse(RconvDataDescriptor* dd)
 		} else if (utf8cmp(tag, "attacks") == 0) {
 			rconv_stepmania_free_all_timed_attacks(chart->attacks_len, chart->attacks);
 			chart->attacks = rconv_stepmania_parse_timed_attacks(content, &chart->attacks_len);
-		} else if (utf8cmp(tag, "delays") == utf8cmp(tag, "warps") == 0) {
+		} else if ((utf8cmp(tag, "delays") == 0) || (utf8cmp(tag, "warps") == 0)) {
 			rconv_stepmania_free_all_delays(chart->delays_len, chart->delays);
 			chart->delays = rconv_stepmania_parse_delays(content, &chart->delays_len);
 		} else if (utf8cmp(tag, "tickcounts") == 0) {
@@ -310,7 +308,16 @@ rconv_stepmania_parse_from_string(char* data)
 RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_file(char* file_path)
 {
-	RconvDataDescriptor* dd = rconv_dd_new_from_file(file_path);
+	if (file_path == NULL) {
+		return NULL;
+	}
+
+	FILE* fp = fopen(file_path, "r");
+	if (fp == NULL) {
+		return NULL;
+	}
+
+	RconvDataDescriptor* dd = rconv_dd_new_from_file(fp);
 	if (dd == NULL) {
 		return NULL;
 	}

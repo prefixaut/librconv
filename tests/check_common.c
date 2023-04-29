@@ -17,6 +17,40 @@ START_TEST(test_trim)
 }
 END_TEST
 
+START_TEST(test_is_integer_string)
+{
+    ck_assert(rconv_is_integer_string("123") == true);
+    ck_assert(rconv_is_integer_string("+456") == true);
+    ck_assert(rconv_is_integer_string("-789") == true);
+    ck_assert(rconv_is_integer_string(" 123") == false);
+    ck_assert(rconv_is_integer_string("hello") == false);
+    ck_assert(rconv_is_integer_string("test123foobar") == false);
+}
+END_TEST
+
+START_TEST(test_is_decimal_string)
+{
+    ck_assert(rconv_is_decimal_string("123") == true);
+    ck_assert(rconv_is_decimal_string("+456") == true);
+    ck_assert(rconv_is_decimal_string("-789") == true);
+    ck_assert(rconv_is_decimal_string(" 123") == false);
+    ck_assert(rconv_is_decimal_string("hello") == false);
+    ck_assert(rconv_is_decimal_string("test123foobar") == false);
+
+    ck_assert(rconv_is_decimal_string("123.0") == true);
+    ck_assert(rconv_is_decimal_string("0.123") == true);
+    ck_assert(rconv_is_decimal_string("+123.34") == true);
+    ck_assert(rconv_is_decimal_string("-675.4") == true);
+    ck_assert(rconv_is_decimal_string(".1337") == true);
+    ck_assert(rconv_is_decimal_string("+.66") == true);
+    ck_assert(rconv_is_decimal_string("-.4") == true);
+    ck_assert(rconv_is_decimal_string("44.542") == true);
+
+    ck_assert(rconv_is_decimal_string("12.0hello231") == false);
+    ck_assert(rconv_is_decimal_string(".") == false);
+    ck_assert(rconv_is_decimal_string("blafoo") == false);
+}
+END_TEST
 
 Suite* dd_suite(void)
 {
@@ -25,6 +59,14 @@ Suite* dd_suite(void)
     TCase* tc_trim = tcase_create("Trim Strings");
     tcase_add_test(tc_trim, test_trim);
     suite_add_tcase(s, tc_trim);
+
+    TCase* tc_is_integer_string = tcase_create("String is Integer");
+    tcase_add_test(tc_is_integer_string, test_is_integer_string);
+    suite_add_tcase(s, tc_is_integer_string);
+
+    TCase* tc_is_decimal_string = tcase_create("String is Decimal");
+    tcase_add_test(tc_is_decimal_string, test_is_decimal_string);
+    suite_add_tcase(s, tc_is_decimal_string);
 
     return s;
 }

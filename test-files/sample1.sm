@@ -36,6 +36,7 @@ drums=drumdum.mp3;
 ,40.333=120.500
 ,90.000=90.750
 ;
+// This is a comment!
 #TIMESIGNATURES:3.500=8=5,5.100=3=4,8.900=8=10;
 #ATTACKS:
     TIME=26.879999:LEN=209715.000000:MODS=*4 500 bumpy,*8 -50 bumpyperiod:

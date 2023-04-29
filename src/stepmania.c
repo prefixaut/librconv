@@ -78,7 +78,7 @@ rconv_stepmania_parse_tags(RconvDataDescriptor* dd, char** tag, char** content)
 }
 
 bool
-rconv_stepmania_is_yes(char* content)
+_rconv_stepmania_is_yes(char* content)
 {
 	utf8lwr(content);
 	return utf8cmp(content, "yes") == 0 || utf8cmp(content, "1") == 0 || utf8cmp(content, "es") == 0 || utf8cmp(content, "omes") == 0;
@@ -121,6 +121,21 @@ rconv_stepmania_parse_string_list(char* data, int* len)
 	}
 
 	RCONV_STEPMANIA_CLEAR_LIST_NAMED(char, string)
+}
+
+RconvStepmaniaChartFile*
+rconv_stepmania_parse_from_tokens(RconvToken* tokens, int token_len)
+{
+	RconvStepmaniaChartFile* chart = (RconvStepmaniaChartFile*) calloc(1, sizeof(RconvStepmaniaChartFile));
+	if (chart == NULL) {
+		return NULL;
+	}
+
+	for (int i = 0; i < token_len; i++) {
+
+	}
+
+	return chart;
 }
 
 RconvStepmaniaChartFile*
@@ -213,7 +228,7 @@ rconv_stepmania_parse(RconvDataDescriptor* dd)
 			free(chart->offset);
 			chart->offset = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
 		} else if (utf8cmp(tag, "selectable") == 0) {
-			chart->selectable = rconv_stepmania_is_yes(content);
+			chart->selectable = _rconv_stepmania_is_yes(content);
 		} else if (utf8cmp(tag, "bgchanges") == 0) {
 			rconv_stepmania_free_all_background_changes(chart->background_changes_len, chart->background_changes);
 			chart->background_changes =

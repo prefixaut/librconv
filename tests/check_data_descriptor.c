@@ -11,10 +11,10 @@ some other content in here\
 START_TEST(test_dd_new_from_file)
 {
     RconvDataDescriptor* dd;
-    char* path;
+    FILE* fp;
 
-    path = "./test-files/dd.txt";
-    dd = rconv_dd_new_from_file(path);
+    fp = fopen("./test-files/dd.txt", "r");
+    dd = rconv_dd_new_from_file(fp);
     ck_assert_int_eq(dd->type, RCONV_DD_TYPE_FILE);
     ck_assert_int_eq(dd->position, 0);
     rconv_dd_free(dd);

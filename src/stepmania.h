@@ -32,6 +32,9 @@ RconvStepmaniaChartFile*
 rconv_stepmania_parse(RconvDataDescriptor* dd);
 
 RconvStepmaniaChartFile*
+rconv_stepmania_parse_from_tokens(RconvToken* tokens, int token_len);
+
+RconvStepmaniaChartFile*
 rconv_stepmania_parse_from_string(char* data);
 
 RconvStepmaniaChartFile*

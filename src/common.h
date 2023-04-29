@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <utf8.h>
+#include <regex.h>
 
 #include "list.h"
 
@@ -46,11 +47,9 @@ typedef enum {
 	// However, attacks and notes are using their own format again which is worked around
 	// with with token flags and context clues.
 	RCONV_STEPMANIA_TOKEN_PROPERTY_START,			// <#>foobar:value11=value12,value21=value22;
-	RCONV_STEPMANIA_TOKEN_PROPERTY_NAME,			// #<value>:value11=value12,value21=value22;
 	RCONV_STEPMANIA_TOKEN_VALUE_START,				// #foobar<:>value11=value12,value21=value22;
 	RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR, 			// #foobar:value11<=>value12<,>value21<=>value22;
 	RCONV_STEPMANIA_TOKEN_PROPERTY_END,				// #foobar:value11=value12,value21=value22<;>
-	RCONV_STEPMANIA_TOKEN_ATTACK_VALUE_SEPARATOR,	// #ATTACKS:TIME=123<:>LEN=456<:>attack1,attack2
 	RCONV_STEPMANIA_TOKEN_NOTE,						// <0>/<1>/<M>/...
 	RCONV_STEPMANIA_TOKEN_INLINE_ATTACK,			// 0<{attack}>
 	RCONV_STEPMANIA_TOKEN_INLINE_KEYSOUND,			// 0<[keysound]>
@@ -68,6 +67,8 @@ typedef struct {
 	RconvTokenType type;
 	int flags;
 	void* content;
+	size_t line;
+	size_t column;
 } RconvToken;
 
 typedef struct {
@@ -107,6 +108,15 @@ rconv_trim(char* str);
 
 bool
 rconv_is_number(char str);
+
+bool
+rconv_is_integer_string(char* str);
+
+bool
+rconv_is_decimal_string(char* str);
+
+RconvTokenType
+rconv_detect_common_token_value_type(char* str);
 
 char*
 rconv_repeat(char* str, int amount);

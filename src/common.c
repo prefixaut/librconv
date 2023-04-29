@@ -74,6 +74,102 @@ rconv_is_number(char c)
 	return c >= 48 && c <= 57;
 }
 
+bool
+rconv_is_integer_string(char* str)
+{
+	if (str == NULL) {
+		return false;
+	}
+
+	size_t len = strlen(str);
+	for (size_t i = 0; i < len; i++) {
+		// Allow + or - prefix for numbers
+		if (i == 0 && (str[i] == '+' || str[i] == '-')) {
+			continue;
+		}
+
+		if (!rconv_is_number(str[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool
+rconv_is_decimal_string(char* str)
+{
+	if (str == NULL) {
+		return false;
+	}
+
+	size_t len = strlen(str);
+	bool had_point = false;
+
+	if (len == 1 && str[0] == '.') {
+		return false;
+	}
+
+	for (size_t i = 0; i < len; i++) {
+		// Allow + or - prefix for numbers
+		if (i == 0 && (str[i] == '+' || str[i] == '-')) {
+			continue;
+		}
+
+		if (str[i] == '.') {
+			if (had_point) {
+				return false;
+			}
+			had_point = true;
+			continue;
+		}
+
+		if (!rconv_is_number(str[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+RconvTokenType
+rconv_detect_common_token_value_type(char* str)
+{
+	size_t len = strlen(str);
+	bool had_point = false;
+    bool had_number = false;
+    RconvTokenType type = RCONV_TOKEN_INTEGER;
+
+	for (size_t i = 0; i < len; i++) {
+		// Allow + or - prefix for numbers
+		if (i == 0 && (str[i] == '+' || str[i] == '-')) {
+			continue;
+		}
+
+		if (str[i] == '.') {
+			if (had_point) {
+                type = RCONV_TOKEN_STRING;
+                break;
+			}
+            type = RCONV_TOKEN_DECIMAL;
+			had_point = true;
+			continue;
+		}
+
+		if (!rconv_is_number(str[i])) {
+            type = RCONV_TOKEN_STRING;
+            break;
+		}
+        had_number = true;
+	}
+
+    if (had_point && !had_number) {
+        type = RCONV_TOKEN_STRING;
+    }
+
+    return type;
+}
+
 char*
 rconv_repeat(char* str, int amount)
 {
@@ -122,16 +218,12 @@ _rconv_token_name(RconvToken* token) {
 		name = "decimal";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_PROPERTY_START) {
 		name = "sm:property-start";
-	} else if (token->type == RCONV_STEPMANIA_TOKEN_PROPERTY_NAME) {
-		name = "sm:property-name";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_VALUE_START) {
 		name = "sm:value-start";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR) {
 		name = "sm:value-separator";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_PROPERTY_END) {
 		name = "sm:property-end";
-	} else if (token->type == RCONV_STEPMANIA_TOKEN_ATTACK_VALUE_SEPARATOR) {
-		name = "sm:attack-value-separator";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_NOTE) {
 		name = "sm:note";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_INLINE_ATTACK) {
@@ -178,5 +270,5 @@ rconv_print_token(RconvToken* token)
 {
 	char* name = _rconv_token_name(token);
 	char* flags = _rconv_token_flags(token);
-	printf("%s: %s (%s)\n", name, (char*) token->content, flags);
+	printf("%ld:%ld => %s: '%s' (%s)\n", token->line, token->column, name, (char*) token->content, flags);
 }

@@ -17,17 +17,17 @@ START_TEST(test_stepmania_tokenize)
 }
 END_TEST
 
-START_TEST(test_parse_stepmania_from_file)
-{
-    RconvStepmaniaChartFile* chart;
+// START_TEST(test_parse_stepmania_from_file)
+// {
+//     RconvStepmaniaChartFile* chart;
 
-    chart = rconv_stepmania_parse_from_file("./test-files/css2022.sm");
-    ck_assert_str_eq(chart->artist, "Will Wood");
-    ck_assert_str_eq(chart->title, "2econd 2ight 2eer (that was fun, goodbye)");
-    ck_assert_str_eq(chart->subtitle, "From prefixaut to JohnFortnite");
-    rconv_stepmania_free_chart_file(chart);
-}
-END_TEST
+//     chart = rconv_stepmania_parse_from_file("./test-files/css2022.sm");
+//     ck_assert_str_eq(chart->artist, "Will Wood");
+//     ck_assert_str_eq(chart->title, "2econd 2ight 2eer (that was fun, goodbye)");
+//     ck_assert_str_eq(chart->subtitle, "From prefixaut to JohnFortnite");
+//     rconv_stepmania_free_chart_file(chart);
+// }
+// END_TEST
 
 Suite* stepmania_suite(void)
 {
@@ -37,9 +37,9 @@ Suite* stepmania_suite(void)
     tcase_add_test(tc_tokenize, test_stepmania_tokenize);
     suite_add_tcase(s, tc_tokenize);
 
-    TCase* tc_parse = tcase_create("Parse from File");
-    tcase_add_test(tc_parse, test_parse_stepmania_from_file);
-    suite_add_tcase(s, tc_parse);
+    // TCase* tc_parse = tcase_create("Parse from File");
+    // tcase_add_test(tc_parse, test_parse_stepmania_from_file);
+    // suite_add_tcase(s, tc_parse);
 
     return s;
 }

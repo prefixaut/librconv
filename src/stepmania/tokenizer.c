@@ -23,6 +23,17 @@ _rconv_stepmania_parse_token(RconvDataDescriptor* dd, size_t start, size_t lengt
 }
 
 RconvToken*
+_rconv_stepmania_new_property_start_token(size_t line, size_t column)
+{
+    RconvToken* token = calloc(1, sizeof(RconvToken));
+    token->type = RCONV_STEPMANIA_TOKEN_PROPERTY_START;
+    token->line = line;
+    token->column = column;
+
+    return token;
+}
+
+RconvToken*
 _rconv_stepmania_new_property_end_token(size_t line, size_t column)
 {
     RconvToken* token = calloc(1, sizeof(RconvToken));
@@ -48,6 +59,34 @@ _rconv_stepmania_new_value_separator_token(size_t flags, size_t line, size_t col
     RconvToken* token = calloc(1, sizeof(RconvToken));
     token->type = RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR;
     token->flags = flags;
+    token->line = line;
+    token->column = column;
+    return token;
+}
+
+RconvToken*
+_rconv_stepmania_new_snap_increase_token(size_t snap, size_t line, size_t column)
+{
+    size_t* content = malloc(sizeof(size_t));
+    content[0] = snap;
+
+    RconvToken* token = calloc(1, sizeof(RconvToken));
+    token->type = RCONV_STEPMANIA_TOKEN_SNAP_INCREASE;
+    token->content = content;
+    token->line = line;
+    token->column = column;
+    return token;
+}
+
+RconvToken*
+_rconv_stepmania_new_snap_reset_token(size_t snap, size_t line, size_t column)
+{
+    size_t* content = malloc(sizeof(size_t));
+    content[0] = snap;
+
+    RconvToken* token = calloc(1, sizeof(RconvToken));
+    token->type = RCONV_STEPMANIA_TOKEN_SNAP_RESET;
+    token->content = content;
     token->line = line;
     token->column = column;
     return token;
@@ -94,7 +133,8 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
     size_t start = 0;
     // Current line and column
     size_t line = 1;
-    size_t column = 0; // -1 since the intial one is gonna increase it to 0
+    size_t column = 0;
+    int utf8char_len = 0;
     // The start position of the current token
     size_t token_line_start = 0;
     size_t token_column_start = 0;
@@ -102,13 +142,19 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
     bool set_new_position = false;
     bool escape_next = false;
     bool used_single = false;
+    bool line_had_note = false;
     size_t meta_count = 0;
     size_t snap_count = 0;
 
     while (!rconv_dd_is_eof(dd)) {
-        char c = rconv_dd_read_char(dd);
+        char* c = rconv_dd_read_utf8char(dd, &utf8char_len);
 
-        if (c == '\n') {
+        // Weird edge case
+        if (c == NULL) {
+            break;
+        }
+
+        if (c[0] == '\n') {
             line++;
             column = 0;
         } else {
@@ -127,15 +173,11 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_STRING) {
-            if ((used_single && c == '\'') || (!used_single && c == '"')) {
+            if ((used_single && c[0] == '\'') || (!used_single && c[0] == '"')) {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
+                size_t token_len = old_pos - start - 1;
 
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 token->type = RCONV_TOKEN_STRING;
                 token->flags = RCONV_TOKENFLAG_STRING_USED_QUOTES;
@@ -156,27 +198,20 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_CLEAN) {
-            if (c == '#') {
+            if (c[0] == '#') {
                 start = dd->position;
 
-                RconvToken* token = calloc(1, sizeof(RconvToken));
-                token->type = RCONV_STEPMANIA_TOKEN_PROPERTY_START;
-                token->line = line;
-                token->column = column;
+                RconvToken* token = _rconv_stepmania_new_property_start_token(line, column);
                 rconv_list_add(list, token);
 
                 state = RCONV_STEPMANIA_TOKENIZER_STATE_IN_PROPERTY_NAME;
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
                 set_new_position = true;
 
                 continue;
             }
 
             // Since comments start with two slashes, we have to look ahead and see what's there.
-            if (c == '/') {
+            if (c[0] == '/') {
                 size_t old_pos = dd->position;
                 char next = rconv_dd_read_char(dd);
 
@@ -196,14 +231,11 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_PROPERTY_NAME) {
-            if (c == ':') {
+            if (c[0] == ':') {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                size_t token_len = old_pos - start - 1;
+
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 _rconv_stepmania_set_token_type(token);
                 // Always lowercase property names to not having to worry about case checks later on
@@ -230,37 +262,38 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_VALUE) {
-            if (c == '\\') {
+            if (c[0] == '\\') {
                 escape_next = true;
                 continue;
             }
 
-            if (c == '\'' || c == '"') {
-                used_single = c == '\'';
+            if (c[0] == '\'' || c[0] == '"') {
+                used_single = c[0] == '\'';
                 prev_state = state;
                 state = RCONV_STEPMANIA_TOKENIZER_STATE_IN_STRING;
                 continue;
             }
 
-            if (c == '=' || c == ',' || c == ':' || c == ';') {
+            if (c[0] == '=' || c[0] == ',' || c[0] == ':' || c[0] == ';') {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                size_t token_len = old_pos - start - 1;
+
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 _rconv_stepmania_set_token_type(token);
                 rconv_list_add(list, token);
                 rconv_dd_set_position(dd, old_pos);
 
-                if (c == '=' || c == ',' || c == ':') {
+                if (c[0] == ';') {
+                    rconv_list_add(list, _rconv_stepmania_new_property_end_token(line, column));
+                    start = 0;
+                    state = RCONV_STEPMANIA_TOKENIZER_STATE_CLEAN;
+                } else {
                     size_t sep_flags;
 
-                    if (c == '=') {
+                    if (c[0] == '=') {
                         sep_flags = RCONV_TOKENFLAG_STEPMANIA_VALUE_SEPARATOR_EQUALS;
-                    } else if (c == ',') {
+                    } else if (c[0] == ',') {
                         sep_flags = RCONV_TOKENFLAG_STEPMANIA_VALUE_SEPARATOR_COMMA;
                     } else {
                         sep_flags = RCONV_TOKENFLAG_STEPMANIA_VALUE_SEPARATOR_COLON;
@@ -269,10 +302,6 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
                     rconv_list_add(list, _rconv_stepmania_new_value_separator_token(sep_flags, line, column));
                     start = old_pos;
                     state = RCONV_STEPMANIA_TOKENIZER_STATE_IN_VALUE;
-                } else {
-                    rconv_list_add(list, _rconv_stepmania_new_property_end_token(line, column));
-                    start = 0;
-                    state = RCONV_STEPMANIA_TOKENIZER_STATE_CLEAN;
                 }
 
                 set_new_position = true;
@@ -284,15 +313,11 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_NOTES_META) {
-            if (c == ',') {
+            if (c[0] == ',') {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
+                size_t token_len = old_pos - start - 1;
 
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 _rconv_stepmania_set_token_type(token);
                 rconv_list_add(list, token);
@@ -306,19 +331,17 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
                 continue;
             }
 
-            if (c == ':') {
+            if (c[0] == ':') {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
+                size_t token_len = old_pos - start - 1;
 
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 _rconv_stepmania_set_token_type(token);
                 rconv_list_add(list, token);
                 rconv_dd_set_position(dd, old_pos);
+
+                rconv_list_add(list, _rconv_stepmania_new_value_separator_token(RCONV_TOKENFLAG_STEPMANIA_VALUE_SEPARATOR_COLON, line, column));
 
                 start = old_pos;
                 set_new_position = true;
@@ -327,6 +350,7 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
                 if (meta_count >= 5) {
                     snap_count = 0;
                     state = RCONV_STEPMANIA_TOKENIZER_STATE_IN_NOTES;
+                    line_had_note = false;
                     continue;
                 }
 
@@ -337,7 +361,7 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_NOTES) {
-            if (c == ';') {
+            if (c[0] == ';') {
                 RconvToken* token = _rconv_stepmania_new_property_end_token(token_line_start, token_column_start);
                 rconv_list_add(list, token);
 
@@ -347,27 +371,34 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
                 continue;
             }
 
-            if (c == ',') {
+            if (c[0] == ',') {
+                rconv_list_add(list, _rconv_stepmania_new_snap_reset_token(snap_count, line, column));
                 snap_count = 0;
+                line_had_note = false;
                 continue;
             }
 
-            if (c == '\n') {
-                snap_count++;
+            if (c[0] == '\n') {
+                if (line_had_note) {
+                    rconv_list_add(list, _rconv_stepmania_new_snap_increase_token(snap_count, line, column));
+                    snap_count++;
+                    line_had_note = false;
+                }
                 continue;
             }
 
-            if (c == RCONV_STEPMANIA_NOTE_EMPTY
-                || c == RCONV_STEPMANIA_NOTE_NOTE
-                || c == RCONV_STEPMANIA_NOTE_HOLD
-                || c == RCONV_STEPMANIA_NOTE_HEND
-                || c == RCONV_STEPMANIA_NOTE_ROLL
-                || c == RCONV_STEPMANIA_NOTE_MINE
-                || c == RCONV_STEPMANIA_NOTE_LIFT
-                || c == RCONV_STEPMANIA_NOTE_FAKE
+            if (c[0] == RCONV_STEPMANIA_NOTE_EMPTY
+                || c[0] == RCONV_STEPMANIA_NOTE_NOTE
+                || c[0] == RCONV_STEPMANIA_NOTE_HOLD
+                || c[0] == RCONV_STEPMANIA_NOTE_HEND
+                || c[0] == RCONV_STEPMANIA_NOTE_ROLL
+                || c[0] == RCONV_STEPMANIA_NOTE_MINE
+                || c[0] == RCONV_STEPMANIA_NOTE_LIFT
+                || c[0] == RCONV_STEPMANIA_NOTE_FAKE
             ) {
-                rconv_list_add(list, _rconv_stepmania_new_note_token);
+                rconv_list_add(list, _rconv_stepmania_new_note_token(c[0], line, column));
 
+                line_had_note = true;
                 set_new_position = true;
 
                 continue;
@@ -377,15 +408,11 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         }
 
         if (state == RCONV_STEPMANIA_TOKENIZER_STATE_IN_LINE_COMMENT) {
-            if (c == '\n') {
+            if (c[0] == '\n') {
                 size_t old_pos = dd->position;
-                size_t length = old_pos - start - 1;
+                size_t token_len = old_pos - start - 1;
 
-                RconvToken* token = _rconv_stepmania_parse_token(dd, start, length, token_line_start, token_column_start);
-                if (token->content != NULL) {
-                    // Correct the column position for multi-byte strings
-                    column = token_column_start + utf8len((char*) token->content);
-                }
+                RconvToken* token = _rconv_stepmania_parse_token(dd, start, token_len, token_line_start, token_column_start);
                 token->content = rconv_trim((char*) token->content);
                 token->type = RCONV_STEPMANIA_TOKEN_LINE_COMMENT;
                 rconv_list_add(list, token);
@@ -403,11 +430,11 @@ rconv_stepmania_tokenize(RconvDataDescriptor* dd, int* length)
         continue;
     }
 
-    RconvListEntry* e = list->head;
-    while (e != NULL) {
-        rconv_print_token((RconvToken*) e->value);
-        e = e->next;
-    }
+    RconvToken* eofToken = calloc(sizeof(RconvToken), 1);
+    eofToken->type = RCONV_TOKEN_EOF;
+    eofToken->line = line;
+    eofToken->column = column + 1;
+    rconv_list_add(list, eofToken);
 
     RconvToken** out = rconv_list_to_token_array(list, length);
     rconv_list_free(list);

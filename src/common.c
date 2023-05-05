@@ -216,6 +216,8 @@ _rconv_token_name(RconvToken* token) {
 		name = "integer";
 	} else if (token->type == RCONV_TOKEN_DECIMAL) {
 		name = "decimal";
+	} else if (token->type == RCONV_TOKEN_EOF) {
+		name = "eof";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_PROPERTY_START) {
 		name = "sm:property-start";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_VALUE_START) {
@@ -226,6 +228,10 @@ _rconv_token_name(RconvToken* token) {
 		name = "sm:property-end";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_NOTE) {
 		name = "sm:note";
+	} else if (token->type == RCONV_STEPMANIA_TOKEN_SNAP_INCREASE) {
+		name = "sm:snap-increase";
+	} else if (token->type == RCONV_STEPMANIA_TOKEN_SNAP_RESET) {
+		name = "sm:snap-reset";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_INLINE_ATTACK) {
 		name = "sm:inline-attack";
 	} else if (token->type == RCONV_STEPMANIA_TOKEN_INLINE_KEYSOUND) {
@@ -242,7 +248,7 @@ _rconv_token_name(RconvToken* token) {
 char*
 _rconv_token_flags(RconvToken* token)
 {
-	char* flags;
+	char* flags = "";
 
 	if (token->type == RCONV_TOKEN_STRING) {
 		if ((token->flags & RCONV_TOKENFLAG_STRING_USED_QUOTES) > 0) {
@@ -268,7 +274,15 @@ _rconv_token_flags(RconvToken* token)
 void
 rconv_print_token(RconvToken* token)
 {
+	char* template;
+	if (token->type == RCONV_STEPMANIA_TOKEN_SNAP_INCREASE || token->type == RCONV_STEPMANIA_TOKEN_SNAP_RESET) {
+		template = "%ld:%ld => %s: '%ld' (%s)\n";
+	} else {
+		template = "%ld:%ld => %s: '%s' (%s)\n";
+	}
+
 	char* name = _rconv_token_name(token);
 	char* flags = _rconv_token_flags(token);
-	printf("%ld:%ld => %s: '%s' (%s)\n", token->line, token->column, name, (char*) token->content, flags);
+
+	printf(template, token->line, token->column, name, token->content, flags);
 }

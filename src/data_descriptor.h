@@ -46,3 +46,6 @@ rconv_dd_read_string(RconvDataDescriptor* dd, char* target, size_t length);
 
 char
 rconv_dd_read_char(RconvDataDescriptor* dd);
+
+char*
+rconv_dd_read_utf8char(RconvDataDescriptor* dd, int* length);

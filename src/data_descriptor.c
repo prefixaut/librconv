@@ -189,3 +189,52 @@ rconv_dd_read_char(RconvDataDescriptor* dd)
 
     return EOF;
 }
+
+char*
+rconv_dd_read_utf8char(RconvDataDescriptor* dd, int* length)
+{
+    char* out = NULL;
+    int len = 0;
+
+    char first = rconv_dd_read_char(dd);
+
+    if (first == EOF) {
+        *length = len;
+        return NULL;
+    }
+    
+    if (0b11110000 == (0b11110000 & first)) {
+        len = 4;
+    } else if (0b11100000 == (0b11100000 & first)) {
+        len = 3;
+    } else if (0b11000000 == (0b11000000 & first)) {
+        len = 2;
+    } else {
+        len = 1;
+    }
+
+    if (len > 0) {
+        out = malloc(sizeof(char) * (len + 1));
+        out[0] = first;
+        bool null_set = false;
+
+        for (int i = 1; i < len; i++) {
+            char c = rconv_dd_read_char(dd);
+
+            if (c == EOF) {
+                out[i] = '\0';
+                null_set = true;
+                break;
+            }
+
+            out[i] = c;
+        }
+
+        if (!null_set) {
+            out[len] = '\0';
+        }
+    }
+    
+    *length = len;
+    return out;
+}

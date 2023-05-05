@@ -39,21 +39,24 @@ typedef enum {
 
 typedef enum {
 	// Common token types, usually used for values
-	RCONV_TOKEN_STRING,
-	RCONV_TOKEN_INTEGER,
-	RCONV_TOKEN_DECIMAL,
+	RCONV_TOKEN_STRING = 1,
+	RCONV_TOKEN_INTEGER = 2,
+	RCONV_TOKEN_DECIMAL = 3,
+	RCONV_TOKEN_EOF = 99,
 
 	// These stepmania-tokens work normally quite fine for nearly all properties.
 	// However, attacks and notes are using their own format again which is worked around
 	// with with token flags and context clues.
-	RCONV_STEPMANIA_TOKEN_PROPERTY_START,			// <#>foobar:value11=value12,value21=value22;
-	RCONV_STEPMANIA_TOKEN_VALUE_START,				// #foobar<:>value11=value12,value21=value22;
-	RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR, 			// #foobar:value11<=>value12<,>value21<=>value22;
-	RCONV_STEPMANIA_TOKEN_PROPERTY_END,				// #foobar:value11=value12,value21=value22<;>
-	RCONV_STEPMANIA_TOKEN_NOTE,						// <0>/<1>/<M>/...
-	RCONV_STEPMANIA_TOKEN_INLINE_ATTACK,			// 0<{attack}>
-	RCONV_STEPMANIA_TOKEN_INLINE_KEYSOUND,			// 0<[keysound]>
-	RCONV_STEPMANIA_TOKEN_LINE_COMMENT,				// <//content>
+	RCONV_STEPMANIA_TOKEN_PROPERTY_START	= 100,	// <#>foobar:value11=value12,value21=value22;
+	RCONV_STEPMANIA_TOKEN_VALUE_START 		= 101,	// #foobar<:>value11=value12,value21=value22;
+	RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR	= 102,	// #foobar:value11<=>value12<,>value21<=>value22;
+	RCONV_STEPMANIA_TOKEN_PROPERTY_END		= 103,	// #foobar:value11=value12,value21=value22<;>
+	RCONV_STEPMANIA_TOKEN_NOTE				= 104,	// <0>/<1>/<M>/...
+	RCONV_STEPMANIA_TOKEN_SNAP_INCREASE		= 105, 	// 0000<\n>0000\n,\n0000
+	RCONV_STEPMANIA_TOKEN_SNAP_RESET		= 106,	// 0000\n0000\n<,>0000
+	RCONV_STEPMANIA_TOKEN_INLINE_ATTACK		= 107,	// 0<{attack}>
+	RCONV_STEPMANIA_TOKEN_INLINE_KEYSOUND	= 108,	// 0<[keysound]>
+	RCONV_STEPMANIA_TOKEN_LINE_COMMENT		= 109,	// <//content>
 } RconvTokenType;
 
 #define RCONV_TOKENFLAG_STRING_USED_QUOTES 1

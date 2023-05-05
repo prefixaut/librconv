@@ -11,6 +11,7 @@ START_TEST(test_stepmania_tokenize)
 
     fp = fopen("./test-files/sample1.sm", "r");
     dd = rconv_dd_new_from_file(fp);
+    length = malloc(sizeof(int));
     rconv_stepmania_tokenize(dd, length);
     rconv_dd_free(dd);
     free(tokens);

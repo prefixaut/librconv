@@ -18,20 +18,20 @@ rconv_list()
 void
 rconv_list_add(RconvList* list, void* element)
 {
-	RconvListEntry* e = (RconvListEntry*) malloc(sizeof(RconvListEntry));
-	if (e == NULL) {
+	RconvListEntry* new_entry = (RconvListEntry*) malloc(sizeof(RconvListEntry));
+	if (new_entry == NULL) {
 		return;
 	}
 
-	e->value = element;
-	e->next = NULL;
+	new_entry->value = element;
+	new_entry->next = NULL;
 
 	if (list->head == NULL) {
-		list->head = e;
-		list->tail = e;
+		list->head = new_entry;
+		list->tail = new_entry;
 	} else {
-		list->tail->next = e;
-		list->tail = e;
+		list->tail->next = new_entry;
+		list->tail = new_entry;
 	}
 
 	list->size++;
@@ -40,20 +40,20 @@ rconv_list_add(RconvList* list, void* element)
 void
 rconv_list_unshift(RconvList* list, void* element)
 {
-	RconvListEntry* e = (RconvListEntry*) malloc(sizeof(RconvListEntry));
-	if (e == NULL) {
+	RconvListEntry* new_entry = (RconvListEntry*) malloc(sizeof(RconvListEntry));
+	if (new_entry == NULL) {
 		return;
 	}
 
-	e->value = element;
-	e->next = NULL;
+	new_entry->value = element;
+	new_entry->next = NULL;
 
 	if (list->head == NULL) {
-		list->head = e;
-		list->tail = e;
+		list->head = new_entry;
+		list->tail = new_entry;
 	} else {
-		e->next = list->head;
-		list->head = e;
+		new_entry->next = list->head;
+		list->head = new_entry;
 	}
 
 	list->size++;
@@ -66,12 +66,12 @@ rconv_list_shift(RconvList* list, void* element)
 		return NULL;
 	}
 
-	RconvListEntry* e = list->head;
-	list->head = e->next;
+	RconvListEntry* entry = list->head;
+	list->head = entry->next;
 	list->size--;
 
-	void* tmp = e->value;
-	free(e);
+	void* tmp = entry->value;
+	free(entry);
 
 	return tmp;
 }
@@ -83,7 +83,7 @@ rconv_list_pop(RconvList* list)
 		return NULL;
 	}
 
-	RconvListEntry* e = list->tail;
+	RconvListEntry* entry = list->tail;
 
 	if (list->tail == list->head) {
 		list->tail = NULL;
@@ -98,8 +98,8 @@ rconv_list_pop(RconvList* list)
 		list->size--;
 	}
 
-	void* tmp = e->value;
-	free(e);
+	void* tmp = entry->value;
+	free(entry);
 
 	return tmp;
 }
@@ -111,7 +111,7 @@ rconv_list_remove(RconvList* list, int index)
 		return;
 	}
 
-	RconvListEntry* e = list->tail;
+	RconvListEntry* entry = list->tail;
 
 	if (list->tail == list->head) {
 		list->tail = NULL;
@@ -126,7 +126,7 @@ rconv_list_remove(RconvList* list, int index)
 		list->size--;
 	}
 
-	free(e);
+	free(entry);
 }
 
 void*
@@ -136,27 +136,27 @@ rconv_list_get(RconvList* list, int index)
 		return NULL;
 	}
 
-	RconvListEntry* e = list->head;
+	RconvListEntry* entry = list->head;
 
 	for (int i = 1; i <= index; i++) {
-		e = e->next;
+		entry = entry->next;
 	}
 
-	return e->value;
+	return entry->value;
 }
 
 void
 rconv_list_free(RconvList* list)
 {
-	RconvListEntry* e = list->head;
+	RconvListEntry* entry = list->head;
 
 	for (size_t i = 1; i < list->size; i++) {
-		RconvListEntry* tmp = e->next;
-		free(e);
-		e = tmp;
+		RconvListEntry* tmp = entry->next;
+		free(entry);
+		entry = tmp;
 	}
 
-	free(e);
+	free(entry);
 }
 
 RCONV_LIST_TO_ARRAY_GEN_NAMED(char, string)

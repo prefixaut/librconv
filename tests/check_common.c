@@ -7,13 +7,9 @@
 START_TEST(test_trim)
 {
     // Annoying workaround to make the string dynamically allocated to use trim properly
-    char* str = "  hello world\n 123\n \t ";
-    char* tmp = malloc(sizeof(char) * 24);
-    strcpy(tmp, str);
-
-    rconv_trim(&tmp);
-    printf("%s\n", tmp);
-    ck_assert_str_eq(tmp, "hello world\n 123");
+    char* original = "  hello world\n 123\n \t ";
+    char* trimmed = rconv_trim(original, false);
+    ck_assert_str_eq(trimmed, "hello world\n 123");
 }
 END_TEST
 

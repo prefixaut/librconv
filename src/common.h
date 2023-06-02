@@ -107,7 +107,7 @@ bool
 rconv_is_whitespace(char str);
 
 char*
-rconv_trim(char* str);
+rconv_trim(char* str, bool free_original);
 
 bool
 rconv_is_number(char str);

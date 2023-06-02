@@ -35,37 +35,39 @@ rconv_substr(const char* str, size_t start, size_t end)
 bool
 rconv_is_whitespace(char c)
 {
-	return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+	return isspace(c) || c == '\n' || c == '\r' || c == '\t';
 }
 
-/**
- * Shamelessly stolen from stack-overflow
- * https://stackoverflow.com/questions/122616/how-do-i-trim-leading-trailing-whitespace-in-a-standard-way
- */
 char*
-rconv_trim(char* str)
+rconv_trim(char* str, bool free_original)
 {
-	char *end;
-
-	// Trim leading space
-	while(isspace((unsigned char) *str)) {
-		str++;
+	if (str == NULL) {
+		return NULL;
 	}
 
-	if(*str == 0) {
-		return str;
+	size_t start = 0;
+	size_t end = strlen(str);
+
+	// Trim leading space
+	while(rconv_is_whitespace(str[start])) {
+		start++;
 	}
 
 	// Trim trailing space
-	end = str + strlen(str) - 1;
-	while(end > str && isspace((unsigned char) *end)) {
+	while(end > start && rconv_is_whitespace(str[end])) {
 		end--;
 	}
 
-	// Write new null terminator character
-	end[1] = '\0';
+	size_t len = end - start;
+	char* out = malloc(sizeof(char) * (len + 1));
+	memcpy(out, str + start, len);
+	out[len + 1] = '\0';
 
-	return str;
+	if (free_original) {
+		free(str);
+	}
+
+	return out;
 }
 
 bool

@@ -1,5 +1,6 @@
 #include <check.h>
 
+#include "./utils.h"
 #include "../src/stepmania.h"
 
 START_TEST(test_stepmania_tokenize)
@@ -22,11 +23,16 @@ START_TEST(test_parse_stepmania_from_file)
     RconvStepmaniaChartFile* chart;
 
     chart = rconv_stepmania_parse_from_file("./test-files/css2022.sm");
-    fflush(stdout);
     ck_assert_ptr_nonnull(chart);
     ck_assert_str_eq(chart->artist, "Will Wood");
     ck_assert_str_eq(chart->title, "2econd 2ight 2eer (that was fun, goodbye)");
     ck_assert_str_eq(chart->subtitle, "From prefixaut to JohnFortnite");
+    ck_assert_str_eq(chart->credit, "PreFiXAUT");
+    ck_assert_str_eq(chart->music, "audio.mp3");
+    ck_assert_str_eq(chart->banner, "bn.png");
+    ck_assert_str_eq(chart->background, "bg.png");
+    ck_assert_str_eq(chart->cd_title, "cdtitle.png");
+    // rconv_ck_decimal_equal(chart->sample_start, 40, 583);
     rconv_stepmania_free_chart_file(chart);
 }
 END_TEST

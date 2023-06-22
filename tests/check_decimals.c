@@ -155,6 +155,19 @@ START_TEST(test_add)
 }
 END_TEST
 
+START_TEST(test_to_string)
+{
+    RconvDecimal* val;
+    char* str;
+
+    val = rconv_decimal_new_from_int(5, 1337, 12345);
+    str = rconv_decimal_to_string(val);
+    ck_assert_str_eq(str, "1337.12345");
+    rconv_decimal_free(val);
+    free(str);
+}
+END_TEST
+
 Suite* decimals_suite(void)
 {
     Suite* s = suite_create("Decimals");
@@ -178,6 +191,10 @@ Suite* decimals_suite(void)
     TCase* tc_add = tcase_create("Add");
     tcase_add_test(tc_add, test_add);
     suite_add_tcase(s, tc_add);
+
+    TCase* tc_to_string = tcase_create("To String");
+    tcase_add_test(tc_to_string, test_to_string);
+    suite_add_tcase(s, tc_to_string);
 
     return s;
 }

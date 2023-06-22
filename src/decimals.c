@@ -234,3 +234,23 @@ rconv_decimal_is_equal(RconvDecimal* one, RconvDecimal* two)
 
 	return out;
 }
+
+char*
+rconv_decimal_to_string(RconvDecimal* value)
+{
+	if (value == NULL) {
+		return NULL;
+	}
+
+	int int_len = snprintf(NULL, 0, "%d", value->integer);
+	int len = int_len + (value->fraction > 0 ? 1 + value->precision : 0);
+	char* dest = malloc(sizeof(char) * (len + 1));
+	snprintf(dest, int_len + 1, "%d", value->integer);
+
+	if (value->fraction > 0) {
+		dest[int_len] = '.';
+		snprintf(dest + int_len + 1, value->precision + 1, "%d", value->fraction);
+	}
+
+	return dest;
+}

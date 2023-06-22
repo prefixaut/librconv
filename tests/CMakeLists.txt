@@ -32,6 +32,7 @@ if(CHECK_FOUND)
     enable_testing()
 
     include_directories("${CMAKE_SOURCE_DIR}/src")
+    include_directories("${CMAKE_SOURCE_DIR}/tests")
     include_directories("${CMAKE_SOURCE_DIR}/lib/utf8")
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 

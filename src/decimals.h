@@ -52,3 +52,6 @@ rconv_decimal_is_zero(RconvDecimal* ptr);
 
 bool
 rconv_decimal_is_equal(RconvDecimal* one, RconvDecimal* two);
+
+char*
+rconv_decimal_to_string(RconvDecimal* value);

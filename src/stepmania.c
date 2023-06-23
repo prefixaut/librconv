@@ -45,6 +45,14 @@ _rconv_stepmania_parse_string_content(RconvToken** tokens, int token_len, int* t
 		if (token->type == RCONV_STEPMANIA_TOKEN_LINE_COMMENT) {
 			continue;
 		}
+		if (token->type != RCONV_TOKEN_DECIMAL
+			&& token->type != RCONV_TOKEN_INTEGER
+			&& token->type != RCONV_TOKEN_STRING
+			&& token->type != RCONV_STEPMANIA_TOKEN_VALUE_SEPARATOR) {
+			// TODO: Handle invalid token?
+			rconv_list_free(list);
+			return "";
+		}
 		char* s = (char*) token->content;
 		if (s == NULL) {
 			continue;
@@ -74,6 +82,39 @@ _rconv_stepmania_parse_string_content(RconvToken** tokens, int token_len, int* t
 	return content;
 }
 
+RconvDecimal*
+_rconv_stepmania_parse_decimal_content(RconvToken** tokens, int token_len, int* token_idx)
+{
+	char* content = NULL;
+
+	for (; *token_idx < token_len; (*token_idx)++) {
+		RconvToken* token = tokens[*token_idx];
+		if (token->type == RCONV_TOKEN_EOF || token->type == RCONV_STEPMANIA_TOKEN_PROPERTY_END) {
+			break;
+		}
+		// Only type which could occur during the value part
+		if (token->type == RCONV_STEPMANIA_TOKEN_LINE_COMMENT) {
+			continue;
+		}
+		if (token->type != RCONV_TOKEN_DECIMAL && token->type != RCONV_TOKEN_INTEGER) {
+			// TODO: Handle invalid token?
+			printf("invaid token for decimals found!\n");
+			rconv_print_token(token);
+			break;
+		}
+		content = (char*) token->content;
+		printf("found decimal content: %s\n", content);
+		break;
+	}
+
+	if (content == NULL) {
+		printf("NO CONTENT for decimal parsing!\n");
+		return NULL;
+	}
+
+	return rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content);
+}
+
 void
 _rconv_stepmania_parse_property(
 	RconvStepmaniaChartFile* chart,
@@ -81,9 +122,16 @@ _rconv_stepmania_parse_property(
 	int token_len,
 	int* token_idx
 ) {
-	char* property_name = (char*) tokens[*token_idx]->content;
-	*token_idx += 1;
-	RconvToken* content_token = tokens[*token_idx + 2];
+	char* property_name = (char*) tokens[(*token_idx)++]->content;
+	printf("Handling property '%s'\n", property_name);
+
+	if (*token_idx > token_len || tokens[*token_idx]->type != RCONV_STEPMANIA_TOKEN_VALUE_START) {
+		// TODO: Handle invalid token
+		return;
+	}
+
+	// Skip the value-start token
+	(*token_idx)++;
 
 	if (strcmp(property_name, "title") == 0) {
 		chart->title = _rconv_stepmania_parse_string_content(tokens, token_len, token_idx);
@@ -112,8 +160,20 @@ _rconv_stepmania_parse_property(
 	} else if (strcmp(property_name, "music") == 0) {	
 		chart->music = _rconv_stepmania_parse_string_content(tokens, token_len, token_idx);
 	} else if (strcmp(property_name, "samplestart") == 0) {
-		chart->sample_start = rconv_decimal_new_from_string(RCONV_STEPMANIA_FRACTION_PRECISION, content_token->content);
-		*token_idx += 2;
+		chart->sample_start = _rconv_stepmania_parse_decimal_content(tokens, token_len, token_idx);
+	} else if (strcmp(property_name, "samplelength") == 0) {
+		chart->sample_length = _rconv_stepmania_parse_decimal_content(tokens, token_len, token_idx);
+	} else if (strcmp(property_name, "offset") == 0) {
+		chart->offset = _rconv_stepmania_parse_decimal_content(tokens, token_len, token_idx);
+	// } else if (strcmp(property_name, "selectable") == 0) {
+		// char* tmp = _rconv_stepmania_parse_string_content(tokens, token_len, token_idx);
+		// if (tmp != NULL) {
+		// 	chart->selectable = _rconv_stepmania_is_yes(tmp);
+		// 	free(tmp);
+		// } else {
+		// 	// TODO: Define default value ??
+		// 	chart->selectable = true;
+		// }
 	} else {
 		// printf("else: '%s'\n", property_name);
 		while (*token_idx < token_len) {

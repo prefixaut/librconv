@@ -1,6 +1,6 @@
 #include <check.h>
 
-#include "./utils.h"
+#include "./_utils.h"
 #include "../src/stepmania.h"
 
 START_TEST(test_stepmania_tokenize)
@@ -32,7 +32,9 @@ START_TEST(test_parse_stepmania_from_file)
     ck_assert_str_eq(chart->banner, "bn.png");
     ck_assert_str_eq(chart->background, "bg.png");
     ck_assert_str_eq(chart->cd_title, "cdtitle.png");
-    // rconv_ck_decimal_equal(chart->sample_start, 40, 583);
+    rconv_ck_decimal_equal(chart->sample_start, 40, 58300);
+    rconv_ck_decimal_equal(chart->sample_length, 26, 80300);
+    // rconv_ck_decimal_equal(chart->offset, 0, -17700);
     rconv_stepmania_free_chart_file(chart);
 }
 END_TEST

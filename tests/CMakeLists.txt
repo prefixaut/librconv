@@ -28,6 +28,8 @@ else()
     endif()
 endif()
 
+file(GLOB UTIL_TEST_FILES "_*.c" "**/_*.c")
+
 if(CHECK_FOUND)
     enable_testing()
 
@@ -47,7 +49,7 @@ if(CHECK_FOUND)
     )
 
     foreach(test_file ${TEST_SOURCES})
-        add_executable("${test_file}" "${test_file}.c")
+        add_executable("${test_file}" "${test_file}.c" ${UTIL_TEST_FILES})
         target_link_libraries("${test_file}" ${PROJECT_NAME} check m subunit)
         add_test("${test_file}" "${CMAKE_CURRENT_BINARY_DIR}/${test_file}")
     endforeach()

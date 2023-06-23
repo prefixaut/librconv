@@ -18,6 +18,13 @@ typedef struct {
 	int integer;
 	int fraction;
     int precision;
+	/**
+	 * Edge case flag for when integer is 0.
+	 * Example: -0.1, would be split into two integers 0, and 1 (precision 1).
+	 * Since negative 0 doesn't exist, the negative information for the fraction would
+	 * be lost and turn the decimal into 0.1 instead.
+	 */
+	bool negative;
 } RconvDecimal;
 
 RconvDecimal*
@@ -55,3 +62,6 @@ rconv_decimal_is_equal(RconvDecimal* one, RconvDecimal* two);
 
 char*
 rconv_decimal_to_string(RconvDecimal* value);
+
+void
+rconv_decimal_print(RconvDecimal* value);

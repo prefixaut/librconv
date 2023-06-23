@@ -8,6 +8,7 @@ rconv_decimal_new(int precision)
 	ptr->integer = 0;
 	ptr->fraction = 0;
 	ptr->precision = precision;
+	ptr->negative = false;
 
 	return ptr;
 }
@@ -20,11 +21,37 @@ rconv_decimal_free(RconvDecimal* ptr)
 	}
 }
 
+/**
+ * Create a new decimal which is already separated into the two
+ * integer components.
+ * rconv_decimal_new_from_int(4, 123, 45) -> 123.4500
+ * Use a negative fraction if the integer is 0, to set the value to
+ * negative.
+ * rconv_decimal_new_from_int(4, 0, 45) -> 0.4500
+ * rconv_decimal_new_from_int(4, 0, -45) -> -0.4500
+ */
 RconvDecimal*
 rconv_decimal_new_from_int(int precision, int integer, int fraction)
 {
 	RconvDecimal* ptr = rconv_decimal_new(precision);
 	ptr->integer = integer;
+	if (integer < 0) {
+		ptr->negative = true;
+	}
+
+	if (fraction == 0) {
+		ptr->fraction = 0;
+		return ptr;
+	}
+	
+	// If it's a negative fraction, correct it to a positive one
+	if (fraction < 0) {
+		// Only do this, if the integer part is 0
+		if (integer == 0) {
+			ptr->negative = true;
+		}
+		fraction = fraction * -1;
+	}
 
 	// Fix the precision of the fraction
 	int fract_max = pow(10, precision);
@@ -58,6 +85,9 @@ rconv_decimal_new_from_double(int precision, double value)
 int
 rconv_decimal_set_from_double(RconvDecimal* result, double value)
 {
+	if (value < 0) {
+		result->negative = true;
+	}
 	result->integer = (int) value;
 	// Get the fraction value without the integer part
 	double tmp = (value - (double) result->integer);
@@ -70,6 +100,10 @@ rconv_decimal_set_from_double(RconvDecimal* result, double value)
 RconvDecimal*
 rconv_decimal_new_from_string(int precision, const char* str)
 {
+	if (str == NULL) {
+		return NULL;
+	}
+
 	RconvDecimal* ptr = rconv_decimal_new(precision);
 	int did_set = rconv_decimal_set_from_string(ptr, str);
 
@@ -95,6 +129,7 @@ rconv_decimal_set_from_string(RconvDecimal* result, const char* str)
 	size_t end = 0;
 	size_t len = strlen(str);
 	bool did_end = false;
+	bool is_negative = false;
 
 	int integer = 0;
 	int fraction = 0;
@@ -103,6 +138,17 @@ rconv_decimal_set_from_string(RconvDecimal* result, const char* str)
 		char tmp = *(str + pos);
 
 		if (state == 0) {
+			// Negative/Positive flags are only valid as first character
+			if (tmp == '-' || tmp == '+') {
+				if (pos > 0) {
+					return RCONV_DECIMAL_ERR_ILLEGAL_CHAR;
+				}
+				if (tmp == '-') {
+					is_negative = true;
+				}
+				continue;
+			}
+
 			if (tmp == '.') {
 				char* slice = rconv_substr(str, 0, pos);
 				integer = atoi(slice);
@@ -155,6 +201,10 @@ rconv_decimal_set_from_string(RconvDecimal* result, const char* str)
 
 	result->integer = integer;
 	result->fraction = fraction;
+
+	if ((result->integer == 0 && is_negative) || result->integer < 0) {
+		result->negative = true;
+	}
 
 	return RCONV_DECIMAL_OK;
 }
@@ -243,7 +293,7 @@ rconv_decimal_to_string(RconvDecimal* value)
 	}
 
 	int int_len = snprintf(NULL, 0, "%d", value->integer);
-	int len = int_len + (value->fraction > 0 ? 1 + value->precision : 0);
+	int len = int_len + (value->precision > 0 ? 1 + value->precision : 0);
 	char* dest = malloc(sizeof(char) * (len + 1));
 	snprintf(dest, int_len + 1, "%d", value->integer);
 
@@ -253,4 +303,19 @@ rconv_decimal_to_string(RconvDecimal* value)
 	}
 
 	return dest;
+}
+
+void
+rconv_decimal_print(RconvDecimal* value)
+{
+	if (value == NULL) {
+		printf("%s\n", NULL);
+		return;
+	}
+
+	if (value->precision > 0) {
+		printf("%d.%d\n", value->integer, value->fraction);
+	} else {
+		printf("%d\n", value->integer);
+	}
 }
